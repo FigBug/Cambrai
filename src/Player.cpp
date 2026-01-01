@@ -97,11 +97,12 @@ void Player::updateKeyboardMouse()
     // Left click to fire
     fireInput = IsMouseButtonDown (MOUSE_BUTTON_LEFT);
 
-    // Right click or Enter to place obstacle
-    placeInput = IsMouseButtonPressed (MOUSE_BUTTON_RIGHT) || IsKeyPressed (KEY_ENTER);
+    // Left click or Enter to place obstacle
+    placeInput = IsMouseButtonPressed (MOUSE_BUTTON_LEFT) || IsKeyPressed (KEY_ENTER);
 
-    // Q/E or scroll wheel to rotate obstacle during placement
-    rotateInput = IsKeyDown (KEY_Q) || IsKeyDown (KEY_E);
+    // Arrow keys, Q/E to rotate obstacle during placement
+    rotateInput = IsKeyDown (KEY_Q) || IsKeyDown (KEY_E) ||
+                  IsKeyDown (KEY_LEFT) || IsKeyDown (KEY_RIGHT);
 }
 
 float Player::applyDeadzone (float value) const
