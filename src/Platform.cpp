@@ -15,7 +15,7 @@ namespace Platform
 
 namespace
 {
-    const char* appName = "Heligoland";
+    const char* appName = "Cambrai";
 
     bool directoryExists (const std::string& path)
     {
