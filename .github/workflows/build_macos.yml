@@ -1,0 +1,104 @@
+name: Build macOS
+on:
+  push:
+    branches:
+      - '**'
+jobs:
+  build:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Keychain
+        run: |
+          security create-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security set-keychain-settings -l -u -t 13600 build.keychain
+
+          echo "$APPLICATION" | base64 -D -o /tmp/Application.p12
+          security import /tmp/Application.p12 -t agg -k build.keychain -P "$CERT_PASS" -A -T /usr/bin/codesign
+
+          echo "$INSTALLER" | base64 -D -o /tmp/Installer.p12
+          security import /tmp/Installer.p12 -t agg -k build.keychain -P "$CERT_PASS" -A -T /usr/bin/pkgbuild -T /usr/bin/productbuild -T /usr/bin/productsign
+
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASS" build.keychain
+        env:
+          APPLICATION: ${{ secrets.APPLICATION }}
+          INSTALLER: ${{ secrets.INSTALLER }}
+          CERT_PASS: ${{ secrets.CERT_PASS }}
+          KEYCHAIN_PASS: ${{ secrets.KEYCHAIN_PASS }}
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Sign Application
+        run: |
+          codesign --deep --force --verify --verbose --timestamp \
+            --options runtime \
+            --sign "$DEV_ID" \
+            build/Cambrai.app
+        env:
+          DEV_ID: ${{ secrets.DEV_ID }}
+
+      - name: Create Installer
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+
+          # Create component package
+          pkgbuild \
+            --root build/Cambrai.app \
+            --install-location "/Applications/Cambrai.app" \
+            --identifier "com.cambrai.game" \
+            --version "$VERSION" \
+            build/Cambrai-component.pkg
+
+          # Create product archive
+          productbuild \
+            --package build/Cambrai-component.pkg \
+            --identifier "com.cambrai.game.pkg" \
+            --version "$VERSION" \
+            build/Cambrai-unsigned.pkg
+
+          rm build/Cambrai-component.pkg
+
+      - name: Sign Installer
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          productsign --sign "$INSTALLER_ID" \
+            build/Cambrai-unsigned.pkg \
+            "build/Cambrai-${VERSION}.pkg"
+          rm build/Cambrai-unsigned.pkg
+        env:
+          INSTALLER_ID: ${{ secrets.INSTALLER_ID }}
+
+      - name: Notarize Installer
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          PKG_FILE="build/Cambrai-${VERSION}.pkg"
+
+          xcrun notarytool submit \
+            --apple-id "$APPLE_USER" \
+            --password "$APPLE_PASS" \
+            --team-id "$TEAM_ID" \
+            --wait --timeout 30m \
+            "$PKG_FILE"
+
+          xcrun stapler staple "$PKG_FILE"
+        env:
+          APPLE_USER: ${{ secrets.APPLE_USER }}
+          APPLE_PASS: ${{ secrets.APPLE_PASS }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cambrai_macOS
+          path: build/Cambrai-*.pkg
