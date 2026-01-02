@@ -27,9 +27,14 @@ cd Cambrai
 
 Then build with your platform's IDE/toolchain:
 
-- **macOS**: Open `build/Cambrai.xcodeproj` in Xcode
-- **Windows**: Open `build/Cambrai.sln` in Visual Studio
-- **Linux**: Run `cmake --build build`
+#### ![macOS](https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white)
+Open `build/Cambrai.xcodeproj` in Xcode
+
+#### ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat&logo=windows&logoColor=white)
+Open `build/Cambrai.sln` in Visual Studio
+
+#### ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
+Run `cmake --build build`
 
 ## Controls
 
