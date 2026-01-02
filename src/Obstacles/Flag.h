@@ -19,6 +19,17 @@ public:
     int getCapturedBy() const { return capturedBy; }
     bool isCaptured() const { return capturedBy >= 0; }
 
+    // Returns true only once when flag is first captured (consumes the capture event)
+    bool consumeCapture()
+    {
+        if (capturedBy >= 0 && !pointsAwarded)
+        {
+            pointsAwarded = true;
+            return true;
+        }
+        return false;
+    }
+
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override
     {
         if (!alive || capturedBy >= 0)
@@ -28,10 +39,6 @@ public:
         for (Tank* tank : tanks)
         {
             if (!tank || !tank->isAlive())
-                continue;
-
-            // Don't let owner capture their own flag
-            if (tank->getPlayerIndex() == ownerIndex)
                 continue;
 
             float dist = (tank->getPosition() - position).length();
@@ -101,4 +108,5 @@ public:
 
 private:
     int capturedBy = -1;  // Player index who captured, -1 if not captured
+    bool pointsAwarded = false;
 };

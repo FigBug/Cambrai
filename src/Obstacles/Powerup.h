@@ -24,6 +24,17 @@ public:
     int getCollectedBy() const { return collectedBy; }
     bool isCollected() const { return collectedBy >= 0; }
 
+    // Returns true only once when powerup is first collected (consumes the collection event)
+    bool consumeCollection()
+    {
+        if (collectedBy >= 0 && !effectApplied)
+        {
+            effectApplied = true;
+            return true;
+        }
+        return false;
+    }
+
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override
     {
         if (!alive || collectedBy >= 0)
@@ -95,6 +106,7 @@ public:
 private:
     PowerupType powerupType;
     int collectedBy = -1;
+    bool effectApplied = false;
     float rotationAngle = 0.0f;
 
     static constexpr float pi = 3.14159265358979323846f;

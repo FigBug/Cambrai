@@ -424,11 +424,11 @@ void Game::updatePlaying (float dt)
             }
         }
 
-        // Handle flag capture
+        // Handle flag capture (consumeCapture returns true only once)
         if (obstacle->getType() == ObstacleType::Flag)
         {
             auto* flag = static_cast<Flag*> (obstacle.get());
-            if (flag->isCaptured())
+            if (flag->consumeCapture())
             {
                 int captor = flag->getCapturedBy();
                 if (captor >= 0 && captor < MAX_PLAYERS)
@@ -438,11 +438,11 @@ void Game::updatePlaying (float dt)
             }
         }
 
-        // Handle powerup collection
+        // Handle powerup collection (consumeCollection returns true only once)
         if (obstacle->getType() == ObstacleType::Powerup)
         {
             auto* powerup = static_cast<Powerup*> (obstacle.get());
-            if (powerup->isCollected())
+            if (powerup->consumeCollection())
             {
                 int collector = powerup->getCollectedBy();
                 if (collector >= 0 && collector < MAX_TANKS && tanks[collector])
