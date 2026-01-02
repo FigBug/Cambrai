@@ -8,6 +8,9 @@
 #include "AutoTurret.h"
 #include "Pit.h"
 #include "Portal.h"
+#include "Flag.h"
+#include "Powerup.h"
+#include "Electromagnet.h"
 
 inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 position, float angle, int ownerIndex)
 {
@@ -27,6 +30,12 @@ inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 positio
             return std::make_unique<Pit> (position, angle, ownerIndex);
         case ObstacleType::Portal:
             return std::make_unique<Portal> (position, angle, ownerIndex);
+        case ObstacleType::Flag:
+            return std::make_unique<Flag> (position, angle, ownerIndex);
+        case ObstacleType::Powerup:
+            return std::make_unique<Powerup> (position, angle, ownerIndex);
+        case ObstacleType::Electromagnet:
+            return std::make_unique<Electromagnet> (position, angle, ownerIndex);
     }
     return nullptr;
 }

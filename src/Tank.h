@@ -64,6 +64,20 @@ public:
     void startTeleportCooldown (float duration);
     void teleportTo (Vec2 newPosition);
 
+    // Powerups
+    void applySpeedPowerup (float duration);
+    void applyDamagePowerup (float duration);
+    void applyArmorPowerup (float duration);
+    bool hasSpeedPowerup() const    { return speedPowerupTimer > 0.0f; }
+    bool hasDamagePowerup() const   { return damagePowerupTimer > 0.0f; }
+    bool hasArmorPowerup() const    { return armorPowerupTimer > 0.0f; }
+    float getSpeedMultiplier() const;
+    float getDamageMultiplier() const;
+    float getArmorMultiplier() const;
+
+    // External force (from electromagnet)
+    void applyExternalForce (Vec2 force);
+
     // Collision
     Vec2 getVelocity() const        { return velocity; }
     float getSpeed() const          { return velocity.length(); }
@@ -104,6 +118,14 @@ private:
 
     // Portal/Pit cooldown
     float teleportCooldown = 0.0f;
+
+    // Powerups
+    float speedPowerupTimer = 0.0f;
+    float damagePowerupTimer = 0.0f;
+    float armorPowerupTimer = 0.0f;
+
+    // External forces (electromagnet)
+    Vec2 externalForce = { 0, 0 };
 
     // Destruction
     bool destroying = false;

@@ -51,6 +51,9 @@ set(HEADERS
     src/Obstacles/AutoTurret.h
     src/Obstacles/Pit.h
     src/Obstacles/Portal.h
+    src/Obstacles/Flag.h
+    src/Obstacles/Powerup.h
+    src/Obstacles/Electromagnet.h
     src/Player.h
     src/AIController.h
     src/Renderer.h

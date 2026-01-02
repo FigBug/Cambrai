@@ -1,4 +1,7 @@
 #include "Game.h"
+#include "Obstacles/Electromagnet.h"
+#include "Obstacles/Flag.h"
+#include "Obstacles/Powerup.h"
 #include <raylib.h>
 #include <algorithm>
 #include <cmath>
@@ -206,7 +209,7 @@ void Game::assignRandomObstacles()
 
 ObstacleType Game::getRandomObstacleType()
 {
-    int r = rand() % 7;
+    int r = rand() % 10;
     switch (r)
     {
         case 0: return ObstacleType::SolidWall;
@@ -216,6 +219,9 @@ ObstacleType Game::getRandomObstacleType()
         case 4: return ObstacleType::AutoTurret;
         case 5: return ObstacleType::Pit;
         case 6: return ObstacleType::Portal;
+        case 7: return ObstacleType::Flag;
+        case 8: return ObstacleType::Powerup;
+        case 9: return ObstacleType::Electromagnet;
         default: return ObstacleType::SolidWall;
     }
 }
@@ -403,6 +409,59 @@ void Game::updatePlaying (float dt)
         for (auto& shell : pendingShells)
             shells.push_back (std::move (shell));
         pendingShells.clear();
+
+        // Apply electromagnet forces
+        if (obstacle->getType() == ObstacleType::Electromagnet && obstacle->isAlive())
+        {
+            auto* magnet = static_cast<Electromagnet*> (obstacle.get());
+            for (auto& tank : tanks)
+            {
+                if (tank && tank->isAlive())
+                {
+                    Vec2 pullForce = magnet->calculatePullForce (*tank);
+                    tank->applyExternalForce (pullForce);
+                }
+            }
+        }
+
+        // Handle flag capture
+        if (obstacle->getType() == ObstacleType::Flag)
+        {
+            auto* flag = static_cast<Flag*> (obstacle.get());
+            if (flag->isCaptured())
+            {
+                int captor = flag->getCapturedBy();
+                if (captor >= 0 && captor < MAX_PLAYERS)
+                {
+                    scores[captor] += config.flagPoints;
+                }
+            }
+        }
+
+        // Handle powerup collection
+        if (obstacle->getType() == ObstacleType::Powerup)
+        {
+            auto* powerup = static_cast<Powerup*> (obstacle.get());
+            if (powerup->isCollected())
+            {
+                int collector = powerup->getCollectedBy();
+                if (collector >= 0 && collector < MAX_TANKS && tanks[collector])
+                {
+                    switch (powerup->getPowerupType())
+                    {
+                        case PowerupType::Speed:
+                            tanks[collector]->applySpeedPowerup (config.powerupDuration);
+                            break;
+                        case PowerupType::Damage:
+                            tanks[collector]->applyDamagePowerup (config.powerupDuration);
+                            break;
+                        case PowerupType::Armor:
+                            tanks[collector]->applyArmorPowerup (config.powerupDuration);
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     // Update engine volume
@@ -552,7 +611,13 @@ void Game::checkCollisions()
             Vec2 hitPoint;
             if (renderer->checkTankHitLine (*tank, shellPrev, shellCur, hitPoint))
             {
-                tank->takeDamage (shell.getDamage(), shell.getOwnerIndex());
+                // Apply damage multiplier from shooter's powerup
+                float damage = shell.getDamage();
+                int shooterIdx = shell.getOwnerIndex();
+                if (shooterIdx >= 0 && shooterIdx < MAX_TANKS && tanks[shooterIdx])
+                    damage *= tanks[shooterIdx]->getDamageMultiplier();
+
+                tank->takeDamage (damage, shell.getOwnerIndex());
 
                 Explosion explosion;
                 explosion.position = hitPoint;
@@ -943,6 +1008,9 @@ void Game::renderPlacement()
             case ObstacleType::AutoTurret: typeText = "AUTO TURRET"; break;
             case ObstacleType::Pit: typeText = "PIT"; break;
             case ObstacleType::Portal: typeText = "PORTAL"; break;
+            case ObstacleType::Flag: typeText = "FLAG"; break;
+            case ObstacleType::Powerup: typeText = "POWERUP"; break;
+            case ObstacleType::Electromagnet: typeText = "ELECTROMAGNET"; break;
         }
 
         std::string statusText = hasPlaced[i] ? "PLACED" : typeText;

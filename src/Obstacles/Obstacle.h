@@ -20,7 +20,17 @@ enum class ObstacleType
     Mine,
     AutoTurret,
     Pit,
-    Portal
+    Portal,
+    Flag,
+    Powerup,
+    Electromagnet
+};
+
+enum class PowerupType
+{
+    Speed,          // +50% speed
+    Damage,         // +50% damage dealt
+    Armor           // -50% damage taken
 };
 
 // Shell collision result
