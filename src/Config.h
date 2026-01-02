@@ -26,11 +26,10 @@ public:
     // -------------------------------------------------------------------------
     // Tank Physics
     // -------------------------------------------------------------------------
-    float tankMaxSpeed                = 5.0f;       // Maximum forward speed
-    float tankReverseSpeed            = 3.0f;       // Maximum reverse speed
+    float tankMaxSpeed                = 25.0f;      // Maximum forward speed (5x original)
+    float tankReverseSpeed            = 15.0f;      // Maximum reverse speed (5x original)
     float tankAccelTime               = 1.5f;       // Seconds to reach full speed
-    float tankBrakeTime               = 0.8f;       // Seconds to stop when braking
-    float tankCoastStopTime           = 3.0f;       // Seconds to stop when coasting
+    float tankThrottleRate            = 2.0f;       // How fast throttle changes per second
     float tankRotateSpeed             = 2.5f;       // Radians per second at full turn
     float tankRotateWhileMoving       = 0.7f;       // Rotation multiplier while moving (harder to turn)
     float tankDamagePenaltyMax        = 0.3f;       // Max speed/turn reduction at 0% health
@@ -39,10 +38,10 @@ public:
     // -------------------------------------------------------------------------
     // Tank Health
     // -------------------------------------------------------------------------
-    float tankMaxHealth               = 100.0f;
-    float shellDamage                 = 35.0f;
-    float mineDamage                  = 100.0f;     // Mines are instant kill
-    float turretDamage                = 15.0f;      // Auto turret damage
+    float tankMaxHealth               = 500.0f;
+    float shellDamage                 = 50.0f;      // Tank shell damage
+    float mineDamage                  = 500.0f;     // Mines are instant kill
+    float turretDamage                = 10.0f;      // Auto turret damage
 
     // -------------------------------------------------------------------------
     // Tank Turret
@@ -53,10 +52,11 @@ public:
     // -------------------------------------------------------------------------
     // Shells / Firing
     // -------------------------------------------------------------------------
-    float fireInterval                = 1.5f;       // Seconds between shots
+    float fireInterval                = 7.0f;       // Seconds between shots
     float shellSpeed                  = 400.0f;     // Pixels per second
     float shellRadius                 = 4.0f;
     float shellDamageRadius           = 15.0f;      // Splash damage radius
+    float shellMaxRange               = 400.0f;     // Max distance shell travels
     int maxShellBounces               = 3;          // Max reflections off reflective walls
 
     // -------------------------------------------------------------------------
@@ -77,6 +77,11 @@ public:
     float turretFireInterval          = 2.0f;       // Auto turret fire rate
     float turretRange                 = 300.0f;     // Auto turret detection range
     float turretRotationSpeedAuto     = 2.0f;       // Auto turret rotation speed
+    float turretHealth                = 400.0f;     // Auto turret health
+    float pitRadius                   = 25.0f;      // Pit radius
+    float pitTrapDuration             = 15.0f;      // How long tank is stuck in pit
+    float portalRadius                = 20.0f;      // Portal radius
+    float portalCooldown              = 10.0f;      // Cooldown before tank can use portal/pit again
 
     // -------------------------------------------------------------------------
     // Smoke / Effects
@@ -92,8 +97,9 @@ public:
     // Track Marks
     // -------------------------------------------------------------------------
     float trackMarkFadeTime           = 8.0f;
-    float trackMarkSpawnInterval      = 0.05f;
-    float trackMarkWidth              = 4.0f;
+    float trackMarkSpawnDistance      = 3.0f;       // Spawn track mark every 3 pixels
+    float trackMarkWidth              = 8.0f;       // Width of tread mark lines
+    float trackMarkLength             = 2.0f;       // Length/thickness of tread mark lines
 
     // -------------------------------------------------------------------------
     // Explosions
@@ -165,6 +171,8 @@ public:
     Color colorMineArmed              = { 200, 50, 50, 255 };
     Color colorAutoTurret             = { 60, 60, 60, 255 };
     Color colorAutoTurretBarrel       = { 40, 40, 40, 255 };
+    Color colorPit                    = { 40, 30, 20, 255 };
+    Color colorPortal                 = { 100, 50, 200, 255 };
 
     // -------------------------------------------------------------------------
     // Colors - UI

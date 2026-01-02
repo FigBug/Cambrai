@@ -77,6 +77,9 @@ private:
     std::array<int, MAX_PLAYERS> kills = {};   // Kills this round
     int roundWinner = -1;
 
+    // Random starting positions (shuffled each round)
+    std::array<int, MAX_TANKS> startPositionOrder = { 0, 1, 2, 3 };
+
     void handleEvents();
     void update (float dt);
     void render();

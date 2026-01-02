@@ -54,6 +54,16 @@ public:
     void takeDamage (float damage, int attackerIndex = -1);
     int getKillerIndex() const      { return killerIndex; }
 
+    // Pit trap
+    bool isTrapped() const          { return trapTimer > 0.0f; }
+    float getTrapTimeRemaining() const { return trapTimer; }
+    void trapInPit (float duration);
+
+    // Portal/Pit cooldown
+    bool canUseTeleporter() const   { return teleportCooldown <= 0.0f; }
+    void startTeleportCooldown (float duration);
+    void teleportTo (Vec2 newPosition);
+
     // Collision
     Vec2 getVelocity() const        { return velocity; }
     float getSpeed() const          { return velocity.length(); }
@@ -84,10 +94,16 @@ private:
     float smokeSpawnTimer = 0.0f;
 
     std::vector<TrackMark> trackMarks;
-    float trackMarkTimer = 0.0f;
+    float trackMarkDistance = 0.0f;  // Distance traveled since last track mark
 
     // Health
     float health = config.tankMaxHealth;
+
+    // Pit trap
+    float trapTimer = 0.0f;
+
+    // Portal/Pit cooldown
+    float teleportCooldown = 0.0f;
 
     // Destruction
     bool destroying = false;

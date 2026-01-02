@@ -20,6 +20,7 @@ public:
     void present();
 
     void drawTank (const Tank& tank);
+    void drawTankGhost (const Tank& tank);  // Grey ghost version for placement phase
     void drawTrackMarks (const Tank& tank);
     void drawSmoke (const Tank& tank);
     void drawShell (const Shell& shell);
@@ -27,6 +28,7 @@ public:
     void drawCrosshair (const Tank& tank);
     void drawObstacle (const Obstacle& obstacle);
     void drawObstaclePreview (const Obstacle& obstacle, bool valid);
+    void drawPit (const Obstacle& pit);  // Draw pit visibly (for placement or when tank trapped)
     void drawTankHUD (const Tank& tank, int slot, int totalSlots, float screenWidth, float hudWidth, float alpha = 1.0f);
 
     void drawOval (Vec2 center, float width, float height, float angle, Color color);
@@ -45,6 +47,7 @@ public:
     float getTankSize() const { return 40.0f; }
 
     bool checkTankHit (const Tank& tank, Vec2 worldPos) const;
+    bool checkTankHitLine (const Tank& tank, Vec2 lineStart, Vec2 lineEnd, Vec2& hitPoint) const;
     bool checkTankCollision (const Tank& tankA, const Tank& tankB, Vec2& collisionPoint) const;
 
 private:

@@ -12,7 +12,9 @@ enum class ObstacleType
     BreakableWall,   // Blocks shells and tanks, can be destroyed
     ReflectiveWall,  // Reflects shells, blocks tanks
     Mine,            // Explodes when tank touches, instant kill
-    AutoTurret       // Shoots at nearest enemy tank
+    AutoTurret,      // Shoots at nearest enemy tank
+    Pit,             // Immobilizes tank that falls in for 15 seconds
+    Portal           // Teleports tank to another random portal
 };
 
 class Tank;

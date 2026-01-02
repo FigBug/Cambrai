@@ -1,7 +1,9 @@
 #include "Shell.h"
+#include <cmath>
 
-Shell::Shell (Vec2 startPos, Vec2 vel, int owner)
-    : position (startPos), previousPosition (startPos), velocity (vel), ownerIndex (owner)
+Shell::Shell (Vec2 startPos, Vec2 vel, int owner, float range, float dmg)
+    : position (startPos), previousPosition (startPos), startPosition (startPos),
+      velocity (vel), ownerIndex (owner), maxRange (range), damage (dmg)
 {
 }
 
@@ -9,6 +11,16 @@ void Shell::update (float dt)
 {
     previousPosition = position;
     position += velocity * dt;
+
+    // Kill shell if it has traveled max range
+    if (getDistanceTraveled() >= maxRange)
+        kill();
+}
+
+float Shell::getDistanceTraveled() const
+{
+    Vec2 diff = position - startPosition;
+    return std::sqrt (diff.x * diff.x + diff.y * diff.y);
 }
 
 void Shell::reflect (Vec2 normal)

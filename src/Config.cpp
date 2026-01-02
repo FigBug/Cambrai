@@ -116,8 +116,7 @@ bool Config::load()
         loadValue (s, "maxSpeed", tankMaxSpeed);
         loadValue (s, "reverseSpeed", tankReverseSpeed);
         loadValue (s, "accelTime", tankAccelTime);
-        loadValue (s, "brakeTime", tankBrakeTime);
-        loadValue (s, "coastStopTime", tankCoastStopTime);
+        loadValue (s, "throttleRate", tankThrottleRate);
         loadValue (s, "rotateSpeed", tankRotateSpeed);
         loadValue (s, "rotateWhileMoving", tankRotateWhileMoving);
         loadValue (s, "damagePenaltyMax", tankDamagePenaltyMax);
@@ -201,8 +200,7 @@ bool Config::save() const
         { "maxSpeed", tankMaxSpeed },
         { "reverseSpeed", tankReverseSpeed },
         { "accelTime", tankAccelTime },
-        { "brakeTime", tankBrakeTime },
-        { "coastStopTime", tankCoastStopTime },
+        { "throttleRate", tankThrottleRate },
         { "rotateSpeed", tankRotateSpeed },
         { "rotateWhileMoving", tankRotateWhileMoving },
         { "damagePenaltyMax", tankDamagePenaltyMax },

@@ -146,6 +146,66 @@ void Renderer::drawTank (const Tank& tank)
     drawRotatedRect (pos, bodyLength, bodyWidth, angle, outlineColor);
 }
 
+void Renderer::drawTankGhost (const Tank& tank)
+{
+    Vec2 pos = tank.getPosition();
+    float angle = tank.getAngle();
+    float size = tank.getSize();
+
+    // Semi-transparent grey color
+    Color ghostColor = { 100, 100, 100, 100 };
+
+    // Tank body - slightly longer than wide
+    float bodyLength = size * 1.2f;
+    float bodyWidth = size * 0.8f;
+
+    // Draw tank body
+    drawFilledRotatedRect (pos, bodyLength, bodyWidth, angle, ghostColor);
+
+    // Tank tracks (darker strips on sides)
+    Color trackColor = { 70, 70, 70, 100 };
+
+    float cosA = std::cos (angle);
+    float sinA = std::sin (angle);
+
+    float trackOffset = bodyWidth * 0.4f;
+    float trackWidth = bodyWidth * 0.2f;
+
+    // Left track
+    Vec2 leftTrackPos = {
+        pos.x - trackOffset * sinA,
+        pos.y + trackOffset * cosA
+    };
+    drawFilledRotatedRect (leftTrackPos, bodyLength, trackWidth, angle, trackColor);
+
+    // Right track
+    Vec2 rightTrackPos = {
+        pos.x + trackOffset * sinA,
+        pos.y - trackOffset * cosA
+    };
+    drawFilledRotatedRect (rightTrackPos, bodyLength, trackWidth, angle, trackColor);
+
+    // Turret base (circular)
+    float turretBaseRadius = size * 0.3f;
+    Color turretBaseColor = { 80, 80, 80, 100 };
+    drawFilledCircle (pos, turretBaseRadius, turretBaseColor);
+
+    // Turret barrel
+    float worldTurretAngle = angle + tank.getTurretAngle();
+    float barrelLength = size * 0.7f;
+    float barrelWidth = size * 0.12f;
+
+    Vec2 barrelDir = Vec2::fromAngle (worldTurretAngle);
+    Vec2 barrelCenter = pos + barrelDir * (barrelLength * 0.5f);
+
+    Color barrelColor = { 60, 60, 60, 100 };
+    drawFilledRotatedRect (barrelCenter, barrelLength, barrelWidth, worldTurretAngle, barrelColor);
+
+    // Outline
+    Color outlineColor = { 50, 50, 50, 100 };
+    drawRotatedRect (pos, bodyLength, bodyWidth, angle, outlineColor);
+}
+
 void Renderer::drawTrackMarks (const Tank& tank)
 {
     for (const auto& mark : tank.getTrackMarks())
@@ -158,18 +218,31 @@ void Renderer::drawTrackMarks (const Tank& tank)
         float cosA = std::cos (mark.angle);
         float sinA = std::sin (mark.angle);
 
-        // Draw two small marks for the tracks
-        Vec2 leftPos = {
+        // Perpendicular direction (for horizontal tread lines relative to tank)
+        float perpX = -sinA;
+        float perpY = cosA;
+
+        float halfWidth = config.trackMarkWidth / 2.0f;
+
+        // Draw two horizontal tread lines for left and right tracks
+        Vec2 leftCenter = {
             mark.position.x - trackOffset * sinA,
             mark.position.y + trackOffset * cosA
         };
-        Vec2 rightPos = {
+        Vec2 rightCenter = {
             mark.position.x + trackOffset * sinA,
             mark.position.y - trackOffset * cosA
         };
 
-        drawFilledCircle (leftPos, config.trackMarkWidth, color);
-        drawFilledCircle (rightPos, config.trackMarkWidth, color);
+        // Left track tread mark (horizontal line perpendicular to tank direction)
+        Vec2 leftStart = { leftCenter.x - perpX * halfWidth, leftCenter.y - perpY * halfWidth };
+        Vec2 leftEnd = { leftCenter.x + perpX * halfWidth, leftCenter.y + perpY * halfWidth };
+        drawLineThick (leftStart, leftEnd, config.trackMarkLength, color);
+
+        // Right track tread mark
+        Vec2 rightStart = { rightCenter.x - perpX * halfWidth, rightCenter.y - perpY * halfWidth };
+        Vec2 rightEnd = { rightCenter.x + perpX * halfWidth, rightCenter.y + perpY * halfWidth };
+        drawLineThick (rightStart, rightEnd, config.trackMarkLength, color);
     }
 }
 
@@ -374,6 +447,35 @@ void Renderer::drawObstacle (const Obstacle& obstacle)
             }
             break;
         }
+
+        case ObstacleType::Pit:
+            // Pits are invisible during normal play - only drawn during placement
+            // or when a tank is trapped (handled separately)
+            break;
+
+        case ObstacleType::Portal:
+        {
+            float radius = config.portalRadius;
+
+            // Swirling portal effect
+            drawFilledCircle (pos, radius, config.colorPortal);
+
+            // Inner rings
+            Color innerColor1 = { 150, 80, 255, 200 };
+            drawFilledCircle (pos, radius * 0.7f, innerColor1);
+
+            Color innerColor2 = { 200, 120, 255, 180 };
+            drawFilledCircle (pos, radius * 0.4f, innerColor2);
+
+            // Bright center
+            Color centerColor = { 255, 200, 255, 255 };
+            drawFilledCircle (pos, radius * 0.15f, centerColor);
+
+            // Outline
+            Color outlineColor = { 60, 30, 120, 255 };
+            drawCircle (pos, radius, outlineColor);
+            break;
+        }
     }
 }
 
@@ -399,7 +501,38 @@ void Renderer::drawObstaclePreview (const Obstacle& obstacle, bool valid)
         case ObstacleType::AutoTurret:
             drawFilledCircle (pos, 15.0f, color);
             break;
+
+        case ObstacleType::Pit:
+            drawFilledCircle (pos, config.pitRadius, color);
+            break;
+
+        case ObstacleType::Portal:
+            drawFilledCircle (pos, config.portalRadius, color);
+            break;
     }
+}
+
+void Renderer::drawPit (const Obstacle& pit)
+{
+    if (pit.getType() != ObstacleType::Pit || !pit.isAlive())
+        return;
+
+    Vec2 pos = pit.getPosition();
+
+    // Dark pit with concentric rings for depth effect
+    drawFilledCircle (pos, config.pitRadius, config.colorPit);
+
+    // Inner darker ring
+    Color innerColor = { 20, 15, 10, 255 };
+    drawFilledCircle (pos, config.pitRadius * 0.7f, innerColor);
+
+    // Center darkest
+    Color centerColor = { 10, 5, 0, 255 };
+    drawFilledCircle (pos, config.pitRadius * 0.4f, centerColor);
+
+    // Outline
+    Color outlineColor = { 60, 50, 40, 255 };
+    drawCircle (pos, config.pitRadius, outlineColor);
 }
 
 void Renderer::drawTankHUD (const Tank& tank, int slot, int totalSlots, float screenWidth, float hudWidth, float alpha)
@@ -438,13 +571,15 @@ void Renderer::drawTankHUD (const Tank& tank, int slot, int totalSlots, float sc
     Color healthColor = { (unsigned char) (255 * (1 - healthPct)), (unsigned char) (255 * healthPct), 0, a };
     drawFilledRect ({ barX, healthY }, barWidth * healthPct, barHeight, healthColor);
 
-    // Reload bar
-    float reloadY = y + 22;
-    drawFilledRect ({ barX, reloadY }, barWidth, barHeight, barBg);
-    float reloadPct = tank.getReloadProgress();
-    Color reloadColor = reloadPct >= 1.0f ? config.colorReloadReady : config.colorReloadNotReady;
-    reloadColor.a = a;
-    drawFilledRect ({ barX, reloadY }, barWidth * reloadPct, barHeight, reloadColor);
+    // Throttle bar
+    float throttleY = y + 22;
+    drawFilledRect ({ barX, throttleY }, barWidth, barHeight, barBg);
+    float throttle = tank.getThrottle();  // -1 to 1
+    float throttlePct = std::abs (throttle);
+    Color throttleColor = throttle >= 0 ? Color { 100, 200, 100, a } : Color { 200, 150, 100, a };
+    float throttleBarWidth = barWidth * throttlePct;
+    float throttleBarX = throttle >= 0 ? barX : barX + barWidth - throttleBarWidth;
+    drawFilledRect ({ throttleBarX, throttleY }, throttleBarWidth, barHeight, throttleColor);
 }
 
 void Renderer::drawOval (Vec2 center, float width, float height, float angle, Color color)
@@ -769,6 +904,45 @@ bool Renderer::checkTankHit (const Tank& tank, Vec2 worldPos) const
     Vec2 diff = worldPos - tank.getPosition();
     float dist = diff.length();
     return dist < tank.getSize() * 0.6f;
+}
+
+bool Renderer::checkTankHitLine (const Tank& tank, Vec2 lineStart, Vec2 lineEnd, Vec2& hitPoint) const
+{
+    // Line-circle intersection test
+    // Tank is approximated as a circle with radius = size * 0.6
+    Vec2 center = tank.getPosition();
+    float radius = tank.getSize() * 0.6f;
+
+    Vec2 d = lineEnd - lineStart;
+    Vec2 f = lineStart - center;
+
+    float a = d.dot (d);
+    float b = 2.0f * f.dot (d);
+    float c = f.dot (f) - radius * radius;
+
+    float discriminant = b * b - 4.0f * a * c;
+    if (discriminant < 0)
+        return false;
+
+    discriminant = std::sqrt (discriminant);
+
+    // Find the nearest intersection point along the line segment
+    float t1 = (-b - discriminant) / (2.0f * a);
+    float t2 = (-b + discriminant) / (2.0f * a);
+
+    // Check if either intersection is within the line segment [0, 1]
+    if (t1 >= 0.0f && t1 <= 1.0f)
+    {
+        hitPoint = lineStart + d * t1;
+        return true;
+    }
+    if (t2 >= 0.0f && t2 <= 1.0f)
+    {
+        hitPoint = lineStart + d * t2;
+        return true;
+    }
+
+    return false;
 }
 
 bool Renderer::checkTankCollision (const Tank& tankA, const Tank& tankB, Vec2& collisionPoint) const

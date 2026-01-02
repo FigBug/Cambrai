@@ -28,6 +28,14 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
         return;
     }
 
+    // Update trap timer
+    if (trapTimer > 0.0f)
+        trapTimer -= dt;
+
+    // Update teleport cooldown
+    if (teleportCooldown > 0.0f)
+        teleportCooldown -= dt;
+
     // Calculate damage penalty (reduces speed and turn rate)
     float damagePercent = getDamagePercent();
     float damagePenalty = 1.0f - (damagePercent * config.tankDamagePenaltyMax);
@@ -41,12 +49,29 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     if (fireInput && isReadyToFire())
         fireShell();
 
+    // If trapped in pit, can't move or rotate
+    if (isTrapped())
+    {
+        velocity = { 0.0f, 0.0f };
+        throttle = 0.0f;
+        updateTurret (dt);
+        updateSmoke (dt);
+        return;
+    }
+
     // TANK CONTROLS:
-    // Left stick Y: Forward/Reverse
+    // Left stick Y: Adjust throttle (throttle stays when released)
     // Left stick X: Rotate tank
 
-    float driveInput = -moveInput.y;  // Negative because stick up is negative
+    float throttleInput = -moveInput.y;  // Negative because stick up is negative
     float rotateInput = moveInput.x;
+
+    // Adjust throttle based on stick input
+    if (std::abs (throttleInput) > 0.1f)
+    {
+        throttle += throttleInput * config.tankThrottleRate * dt;
+        throttle = std::clamp (throttle, -1.0f, 1.0f);
+    }
 
     // Rotation: Tank can rotate while stationary or moving
     // Rotation is slightly slower while moving at speed
@@ -65,56 +90,27 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
             angle += 2.0f * pi;
     }
 
-    // Movement: Forward/Reverse based on drive input
+    // Movement: Based on throttle
     Vec2 forward = Vec2::fromAngle (angle);
 
-    float effectiveMaxSpeed = (driveInput >= 0 ? config.tankMaxSpeed : config.tankReverseSpeed) * damagePenalty;
-    float targetSpeed = driveInput * effectiveMaxSpeed;
+    float effectiveMaxSpeed = (throttle >= 0 ? config.tankMaxSpeed : config.tankReverseSpeed) * damagePenalty;
+    float targetSpeed = throttle * effectiveMaxSpeed;
 
     // Current speed along tank's forward direction
     float currentForwardSpeed = velocity.dot (forward);
 
-    // Acceleration/braking
+    // Acceleration toward target speed
     float accelRate = config.tankMaxSpeed / config.tankAccelTime;
-    float brakeRate = config.tankMaxSpeed / config.tankBrakeTime;
-    float coastRate = config.tankMaxSpeed / config.tankCoastStopTime;
 
     float speedDiff = targetSpeed - currentForwardSpeed;
+    float change = accelRate * dt;
 
-    if (std::abs (driveInput) > 0.1f)
-    {
-        // Player is giving input
-        if ((driveInput > 0 && currentForwardSpeed < 0) || (driveInput < 0 && currentForwardSpeed > 0))
-        {
-            // Braking (going opposite direction) - fast stop
-            float change = brakeRate * dt;
-            if (currentForwardSpeed > 0)
-                currentForwardSpeed = std::max (0.0f, currentForwardSpeed - change);
-            else
-                currentForwardSpeed = std::min (0.0f, currentForwardSpeed + change);
-        }
-        else
-        {
-            // Accelerating in desired direction
-            float change = accelRate * dt;
-            if (speedDiff > 0)
-                currentForwardSpeed = std::min (currentForwardSpeed + change, targetSpeed);
-            else
-                currentForwardSpeed = std::max (currentForwardSpeed - change, targetSpeed);
-        }
-    }
+    if (speedDiff > 0)
+        currentForwardSpeed = std::min (currentForwardSpeed + change, targetSpeed);
     else
-    {
-        // No input - coast to stop
-        float change = coastRate * dt;
-        if (currentForwardSpeed > 0)
-            currentForwardSpeed = std::max (0.0f, currentForwardSpeed - change);
-        else if (currentForwardSpeed < 0)
-            currentForwardSpeed = std::min (0.0f, currentForwardSpeed + change);
-    }
+        currentForwardSpeed = std::max (currentForwardSpeed - change, targetSpeed);
 
     velocity = forward * currentForwardSpeed;
-    throttle = currentForwardSpeed / config.tankMaxSpeed;  // For HUD display
 
     // Update position
     position += velocity * dt;
@@ -340,7 +336,7 @@ bool Tank::fireShell()
     // Shell velocity
     Vec2 shellVel = turretDir * config.shellSpeed;
 
-    pendingShells.push_back (Shell (shellPos, shellVel, playerIndex));
+    pendingShells.push_back (Shell (shellPos, shellVel, playerIndex, config.shellMaxRange, config.shellDamage));
     reloadTimer = 0.0f;
 
     return true;
@@ -371,14 +367,14 @@ void Tank::updateTrackMarks (float dt)
             ++it;
     }
 
-    // Spawn new track marks when moving
+    // Spawn new track marks based on distance traveled
     float speed = velocity.length();
-    if (isAlive() && speed > 0.5f)
+    if (isAlive() && speed > 0.1f)
     {
-        trackMarkTimer += dt;
-        if (trackMarkTimer >= config.trackMarkSpawnInterval)
+        trackMarkDistance += speed * dt;
+        if (trackMarkDistance >= config.trackMarkSpawnDistance)
         {
-            trackMarkTimer = 0.0f;
+            trackMarkDistance = 0.0f;
             trackMarks.push_back ({ position, angle, 1.0f });
         }
     }
@@ -435,4 +431,27 @@ void Tank::updateSmoke (float dt)
             smoke.push_back ({ spawnPos, smokeRadius, startAlpha, fadeRate });
         }
     }
+}
+
+void Tank::trapInPit (float duration)
+{
+    if (!isTrapped() && canUseTeleporter())
+    {
+        trapTimer = duration;
+        velocity = { 0.0f, 0.0f };
+        throttle = 0.0f;
+        startTeleportCooldown (config.portalCooldown);
+    }
+}
+
+void Tank::startTeleportCooldown (float duration)
+{
+    teleportCooldown = duration;
+}
+
+void Tank::teleportTo (Vec2 newPosition)
+{
+    position = newPosition;
+    velocity = { 0.0f, 0.0f };
+    startTeleportCooldown (config.portalCooldown);
 }

@@ -149,18 +149,37 @@ void Game::startPlacement()
 {
     currentRound++;
 
-    // Create tanks at starting positions
+    // Shuffle starting positions
+    for (int i = MAX_TANKS - 1; i > 0; --i)
+    {
+        int j = rand() % (i + 1);
+        std::swap (startPositionOrder[i], startPositionOrder[j]);
+    }
+
+    // Create tanks at randomized starting positions
     float tankSize = renderer->getTankSize();
     for (int i = 0; i < MAX_TANKS; ++i)
     {
-        tanks[i] = std::make_unique<Tank> (i, getTankStartPosition (i), getTankStartAngle (i), tankSize);
+        int posIndex = startPositionOrder[i];
+        tanks[i] = std::make_unique<Tank> (i, getTankStartPosition (posIndex), getTankStartAngle (posIndex), tankSize);
     }
 
     shells.clear();
     explosions.clear();
-    obstacles.clear();
 
-    // Assign random obstacles
+    // Clear all obstacles on round 1, otherwise just remove destroyed ones
+    if (currentRound == 1)
+        obstacles.clear();
+    else
+    {
+        // Remove destroyed obstacles (mines that exploded, breakable walls that were destroyed)
+        obstacles.erase (
+            std::remove_if (obstacles.begin(), obstacles.end(), [] (const Obstacle& o)
+                            { return !o.isAlive(); }),
+            obstacles.end());
+    }
+
+    // Assign random obstacles for placement
     assignRandomObstacles();
 
     // Initialize placement
@@ -187,7 +206,7 @@ void Game::assignRandomObstacles()
 
 ObstacleType Game::getRandomObstacleType()
 {
-    int r = rand() % 5;
+    int r = rand() % 7;
     switch (r)
     {
         case 0: return ObstacleType::SolidWall;
@@ -195,6 +214,8 @@ ObstacleType Game::getRandomObstacleType()
         case 2: return ObstacleType::ReflectiveWall;
         case 3: return ObstacleType::Mine;
         case 4: return ObstacleType::AutoTurret;
+        case 5: return ObstacleType::Pit;
+        case 6: return ObstacleType::Portal;
         default: return ObstacleType::SolidWall;
     }
 }
@@ -488,35 +509,31 @@ void Game::checkCollisions()
                         break;
 
                     case ObstacleType::Mine:
-                        // Destroy mine and shell
-                        obstacle.takeDamage (9999.0f);
-                        shell.kill();
-
-                        // Create explosion
-                        {
-                            Explosion explosion;
-                            explosion.position = collisionPoint;
-                            explosion.duration = config.destroyExplosionDuration;
-                            explosion.maxRadius = config.destroyExplosionMaxRadius;
-                            explosions.push_back (explosion);
-
-                            if (audio)
-                                audio->playExplosion (collisionPoint.x, arenaWidth);
-                        }
+                        // Shells pass over mines, no collision
                         break;
 
                     case ObstacleType::AutoTurret:
-                        // Destroy turret and shell
-                        obstacle.takeDamage (9999.0f);
+                        // Damage turret and destroy shell
+                        obstacle.takeDamage (shell.getDamage());
                         shell.kill();
 
                         // Create explosion
                         {
                             Explosion explosion;
                             explosion.position = collisionPoint;
-                            explosion.duration = config.destroyExplosionDuration;
-                            explosion.maxRadius = config.destroyExplosionMaxRadius;
+                            explosion.duration = config.explosionDuration;
+                            explosion.maxRadius = config.explosionMaxRadius;
                             explosions.push_back (explosion);
+
+                            // Big explosion if destroyed
+                            if (!obstacle.isAlive())
+                            {
+                                Explosion destroyExplosion;
+                                destroyExplosion.position = obstacle.getPosition();
+                                destroyExplosion.duration = config.destroyExplosionDuration;
+                                destroyExplosion.maxRadius = config.destroyExplosionMaxRadius;
+                                explosions.push_back (destroyExplosion);
+                            }
 
                             if (audio)
                                 audio->playExplosion (collisionPoint.x, arenaWidth);
@@ -530,11 +547,14 @@ void Game::checkCollisions()
         }
     }
 
-    // Shell-to-tank collisions
+    // Shell-to-tank collisions (raycast along shell path)
     for (auto& shell : shells)
     {
         if (!shell.isAlive())
             continue;
+
+        Vec2 shellPrev = shell.getPreviousPosition();
+        Vec2 shellCur = shell.getPosition();
 
         for (auto& tank : tanks)
         {
@@ -544,18 +564,19 @@ void Game::checkCollisions()
             if (tank->getPlayerIndex() == shell.getOwnerIndex())
                 continue;  // Don't hit own tank
 
-            if (renderer->checkTankHit (*tank, shell.getPosition()))
+            Vec2 hitPoint;
+            if (renderer->checkTankHitLine (*tank, shellPrev, shellCur, hitPoint))
             {
-                tank->takeDamage (config.shellDamage, shell.getOwnerIndex());
+                tank->takeDamage (shell.getDamage(), shell.getOwnerIndex());
 
                 Explosion explosion;
-                explosion.position = shell.getPosition();
+                explosion.position = hitPoint;
                 explosion.duration = config.explosionDuration;
                 explosion.maxRadius = config.explosionMaxRadius;
                 explosions.push_back (explosion);
 
                 if (audio)
-                    audio->playExplosion (shell.getPosition().x, arenaWidth);
+                    audio->playExplosion (hitPoint.x, arenaWidth);
 
                 // Track kill
                 if (!tank->isAlive() && shell.getOwnerIndex() >= 0 && shell.getOwnerIndex() < MAX_PLAYERS)
@@ -619,6 +640,33 @@ void Game::checkCollisions()
                         destroyExplosion.duration = config.destroyExplosionDuration;
                         destroyExplosion.maxRadius = config.destroyExplosionMaxRadius;
                         explosions.push_back (destroyExplosion);
+                    }
+                }
+                else if (obstacle.getType() == ObstacleType::Pit)
+                {
+                    // Tank falls into pit - trapped for duration (if not on cooldown)
+                    if (tank->canUseTeleporter())
+                        tank->trapInPit (config.pitTrapDuration);
+                }
+                else if (obstacle.getType() == ObstacleType::Portal)
+                {
+                    // Teleport to another random portal (if not on cooldown)
+                    if (tank->canUseTeleporter())
+                    {
+                        // Find all other portals
+                        std::vector<Obstacle*> otherPortals;
+                        for (auto& other : obstacles)
+                        {
+                            if (&other != &obstacle && other.getType() == ObstacleType::Portal && other.isAlive())
+                                otherPortals.push_back (&other);
+                        }
+
+                        // Teleport to random portal if there are others
+                        if (!otherPortals.empty())
+                        {
+                            Obstacle* destPortal = otherPortals[rand() % otherPortals.size()];
+                            tank->teleportTo (destPortal->getPosition());
+                        }
                     }
                 }
                 else
@@ -858,14 +906,19 @@ void Game::renderPlacement()
     float w, h;
     getWindowSize (w, h);
 
-    // Draw existing obstacles
+    // Draw existing obstacles (pits need to be visible during placement)
     for (const auto& obstacle : obstacles)
-        renderer->drawObstacle (obstacle);
+    {
+        if (obstacle.getType() == ObstacleType::Pit)
+            renderer->drawPit (obstacle);
+        else
+            renderer->drawObstacle (obstacle);
+    }
 
-    // Draw tanks
+    // Draw tanks as grey ghosts during placement
     for (const auto& tank : tanks)
         if (tank)
-            renderer->drawTank (*tank);
+            renderer->drawTankGhost (*tank);
 
     // Draw placement previews for human players
     for (int i = 0; i < MAX_PLAYERS; ++i)
@@ -906,6 +959,8 @@ void Game::renderPlacement()
             case ObstacleType::ReflectiveWall: typeText = "MIRROR WALL"; break;
             case ObstacleType::Mine: typeText = "MINE"; break;
             case ObstacleType::AutoTurret: typeText = "AUTO TURRET"; break;
+            case ObstacleType::Pit: typeText = "PIT"; break;
+            case ObstacleType::Portal: typeText = "PORTAL"; break;
         }
 
         std::string statusText = hasPlaced[i] ? "PLACED" : typeText;
@@ -927,6 +982,27 @@ void Game::renderPlaying()
     // Draw obstacles
     for (const auto& obstacle : obstacles)
         renderer->drawObstacle (obstacle);
+
+    // Draw pits that have tanks trapped in them
+    for (const auto& obstacle : obstacles)
+    {
+        if (obstacle.getType() == ObstacleType::Pit && obstacle.isAlive())
+        {
+            // Check if any tank is trapped in this pit
+            for (const auto& tank : tanks)
+            {
+                if (tank && tank->isTrapped())
+                {
+                    Vec2 diff = tank->getPosition() - obstacle.getPosition();
+                    if (diff.length() < config.pitRadius)
+                    {
+                        renderer->drawPit (obstacle);
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     // Draw tanks
     for (const auto& tank : tanks)

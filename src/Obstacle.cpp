@@ -8,6 +8,8 @@ Obstacle::Obstacle (ObstacleType type_, Vec2 pos, float ang, int owner)
 {
     if (type == ObstacleType::BreakableWall)
         health = config.breakableWallHealth;
+    else if (type == ObstacleType::AutoTurret)
+        health = config.turretHealth;
     else
         health = 9999.0f;  // Effectively indestructible
 
@@ -82,7 +84,7 @@ void Obstacle::updateAutoTurret (float dt, const std::vector<Tank*>& tanks)
             Vec2 shellPos = position + shellDir * 20.0f;
             Vec2 shellVel = shellDir * config.shellSpeed * 0.7f;  // Slower than player shells
 
-            pendingShells.push_back (Shell (shellPos, shellVel, ownerIndex));
+            pendingShells.push_back (Shell (shellPos, shellVel, ownerIndex, config.turretRange, config.turretDamage));
             reloadTimer = 0.0f;
         }
     }
@@ -140,7 +142,7 @@ std::array<Vec2, 4> Obstacle::getCorners() const
 
 void Obstacle::takeDamage (float damage)
 {
-    if (type != ObstacleType::BreakableWall)
+    if (type != ObstacleType::BreakableWall && type != ObstacleType::AutoTurret && type != ObstacleType::Mine)
         return;
 
     health -= damage;
@@ -260,6 +262,36 @@ bool Obstacle::checkTankCollision (const Tank& tank, Vec2& pushDirection, float&
         {
             pushDirection = diff.normalized();
             pushDistance = combinedRadius - dist;
+            return true;
+        }
+        return false;
+    }
+
+    if (type == ObstacleType::Pit)
+    {
+        // Circle collision for pits - tank falls in if center is inside
+        Vec2 diff = tank.getPosition() - position;
+        float dist = diff.length();
+
+        if (dist < config.pitRadius)
+        {
+            pushDirection = diff.normalized();
+            pushDistance = 0.0f;  // No push, tank is trapped
+            return true;
+        }
+        return false;
+    }
+
+    if (type == ObstacleType::Portal)
+    {
+        // Circle collision for portals
+        Vec2 diff = tank.getPosition() - position;
+        float dist = diff.length();
+
+        if (dist < config.portalRadius)
+        {
+            pushDirection = diff.normalized();
+            pushDistance = 0.0f;  // No push, tank teleports
             return true;
         }
         return false;
