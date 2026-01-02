@@ -650,8 +650,9 @@ void Game::checkCollisions()
                 if (audio)
                     audio->playExplosion (hitPoint.x, arenaWidth);
 
-                // Track kill
-                if (!tank->isAlive() && shell.getOwnerIndex() >= 0 && shell.getOwnerIndex() < MAX_PLAYERS)
+                // Track kill (no points for self-kills)
+                if (!tank->isAlive() && shell.getOwnerIndex() >= 0 && shell.getOwnerIndex() < MAX_PLAYERS
+                    && tank->getPlayerIndex() != shell.getOwnerIndex())
                 {
                     kills[shell.getOwnerIndex()]++;
                     scores[shell.getOwnerIndex()] += config.pointsForKill;
@@ -701,8 +702,9 @@ void Game::checkCollisions()
                     if (audio)
                         audio->playExplosion (obstacle->getPosition().x, arenaWidth);
 
-                    // Track kill
-                    if (!tank->isAlive() && obstacle->getOwnerIndex() >= 0 && obstacle->getOwnerIndex() < MAX_PLAYERS)
+                    // Track kill (no points for self-kills)
+                    if (!tank->isAlive() && obstacle->getOwnerIndex() >= 0 && obstacle->getOwnerIndex() < MAX_PLAYERS
+                        && tank->getPlayerIndex() != obstacle->getOwnerIndex())
                     {
                         kills[obstacle->getOwnerIndex()]++;
                         scores[obstacle->getOwnerIndex()] += config.pointsForKill;

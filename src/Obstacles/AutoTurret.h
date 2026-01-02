@@ -144,9 +144,6 @@ private:
             if (!tank || !tank->isAlive())
                 continue;
 
-            if (tank->getPlayerIndex() == ownerIndex)
-                continue;
-
             float dist = (tank->getPosition() - position).length();
             if (dist < nearestDist)
             {
