@@ -1,6 +1,6 @@
 #include "Renderer.h"
 #include "Config.h"
-#include "Obstacle.h"
+#include "Obstacles/Obstacle.h"
 #include "Shell.h"
 #include "Tank.h"
 #include <algorithm>
@@ -340,176 +340,12 @@ void Renderer::drawCrosshair (const Tank& tank)
 
 void Renderer::drawObstacle (const Obstacle& obstacle)
 {
-    if (!obstacle.isAlive())
-        return;
-
-    Vec2 pos = obstacle.getPosition();
-    float angle = obstacle.getAngle();
-
-    switch (obstacle.getType())
-    {
-        case ObstacleType::SolidWall:
-        {
-            drawFilledRotatedRect (pos, config.wallLength, config.wallThickness, angle, config.colorSolidWall);
-            Color outline = { 60, 60, 60, 255 };
-            drawRotatedRect (pos, config.wallLength, config.wallThickness, angle, outline);
-            break;
-        }
-
-        case ObstacleType::BreakableWall:
-        {
-            // Fade color based on health
-            float healthPct = obstacle.getHealth() / obstacle.getMaxHealth();
-            Color color = {
-                (unsigned char) (config.colorBreakableWall.r * healthPct),
-                (unsigned char) (config.colorBreakableWall.g * healthPct),
-                (unsigned char) (config.colorBreakableWall.b * healthPct),
-                255
-            };
-            drawFilledRotatedRect (pos, config.wallLength, config.wallThickness, angle, color);
-
-            // Damage cracks (lines) when damaged
-            if (healthPct < 0.7f)
-            {
-                Color crackColor = { 50, 30, 20, 200 };
-                float cosA = std::cos (angle);
-                float sinA = std::sin (angle);
-                for (int i = 0; i < 3; ++i)
-                {
-                    float offset = ((float) i - 1.0f) * config.wallLength * 0.25f;
-                    Vec2 crackStart = { pos.x + offset * cosA, pos.y + offset * sinA };
-                    Vec2 crackEnd = { crackStart.x - config.wallThickness * 0.4f * sinA, crackStart.y + config.wallThickness * 0.4f * cosA };
-                    drawLine (crackStart, crackEnd, crackColor);
-                }
-            }
-            break;
-        }
-
-        case ObstacleType::ReflectiveWall:
-        {
-            drawFilledRotatedRect (pos, config.wallLength, config.wallThickness, angle, config.colorReflectiveWall);
-            // Shiny highlight
-            Color highlight = { 220, 220, 255, 100 };
-            float cosA = std::cos (angle);
-            float sinA = std::sin (angle);
-            Vec2 highlightStart = { pos.x - config.wallLength * 0.4f * cosA, pos.y - config.wallLength * 0.4f * sinA };
-            Vec2 highlightEnd = { pos.x + config.wallLength * 0.4f * cosA, pos.y + config.wallLength * 0.4f * sinA };
-            drawLineThick (highlightStart, highlightEnd, 2.0f, highlight);
-            break;
-        }
-
-        case ObstacleType::Mine:
-        {
-            float radius = config.mineRadius;
-            Color color = obstacle.isArmed() ? config.colorMineArmed : config.colorMine;
-
-            // Mine body
-            drawFilledCircle (pos, radius, color);
-            drawCircle (pos, radius, config.colorBlack);
-
-            // Spikes
-            int spikes = 8;
-            for (int i = 0; i < spikes; ++i)
-            {
-                float spikeAngle = (2.0f * pi * i) / spikes;
-                Vec2 spikeEnd = pos + Vec2::fromAngle (spikeAngle) * (radius * 1.3f);
-                drawLine (pos + Vec2::fromAngle (spikeAngle) * radius, spikeEnd, config.colorBlack);
-            }
-
-            // Blinking light when armed
-            if (obstacle.isArmed())
-            {
-                Color blinkColor = { 255, 50, 50, 255 };
-                drawFilledCircle (pos, 3.0f, blinkColor);
-            }
-            break;
-        }
-
-        case ObstacleType::AutoTurret:
-        {
-            // Base
-            drawFilledCircle (pos, 15.0f, config.colorAutoTurret);
-            drawCircle (pos, 15.0f, config.colorBlack);
-
-            // Barrel
-            float turretAngle = obstacle.getTurretAngle();
-            Vec2 barrelDir = Vec2::fromAngle (turretAngle);
-            Vec2 barrelEnd = pos + barrelDir * 25.0f;
-            drawLineThick (pos, barrelEnd, 4.0f, config.colorAutoTurretBarrel);
-
-            // Reload indicator
-            float reloadPct = obstacle.getReloadProgress();
-            if (reloadPct < 1.0f)
-            {
-                float indicatorRadius = 5.0f * reloadPct;
-                Color indicatorColor = { 255, 100, 100, 150 };
-                drawFilledCircle (pos, indicatorRadius, indicatorColor);
-            }
-            break;
-        }
-
-        case ObstacleType::Pit:
-            // Pits are invisible during normal play - only drawn during placement
-            // or when a tank is trapped (handled separately)
-            break;
-
-        case ObstacleType::Portal:
-        {
-            float radius = config.portalRadius;
-
-            // Swirling portal effect
-            drawFilledCircle (pos, radius, config.colorPortal);
-
-            // Inner rings
-            Color innerColor1 = { 150, 80, 255, 200 };
-            drawFilledCircle (pos, radius * 0.7f, innerColor1);
-
-            Color innerColor2 = { 200, 120, 255, 180 };
-            drawFilledCircle (pos, radius * 0.4f, innerColor2);
-
-            // Bright center
-            Color centerColor = { 255, 200, 255, 255 };
-            drawFilledCircle (pos, radius * 0.15f, centerColor);
-
-            // Outline
-            Color outlineColor = { 60, 30, 120, 255 };
-            drawCircle (pos, radius, outlineColor);
-            break;
-        }
-    }
+    obstacle.draw (*this);
 }
 
 void Renderer::drawObstaclePreview (const Obstacle& obstacle, bool valid)
 {
-    Vec2 pos = obstacle.getPosition();
-    float angle = obstacle.getAngle();
-
-    Color color = valid ? config.colorPlacementValid : config.colorPlacementInvalid;
-
-    switch (obstacle.getType())
-    {
-        case ObstacleType::SolidWall:
-        case ObstacleType::BreakableWall:
-        case ObstacleType::ReflectiveWall:
-            drawFilledRotatedRect (pos, config.wallLength, config.wallThickness, angle, color);
-            break;
-
-        case ObstacleType::Mine:
-            drawFilledCircle (pos, config.mineRadius, color);
-            break;
-
-        case ObstacleType::AutoTurret:
-            drawFilledCircle (pos, 15.0f, color);
-            break;
-
-        case ObstacleType::Pit:
-            drawFilledCircle (pos, config.pitRadius, color);
-            break;
-
-        case ObstacleType::Portal:
-            drawFilledCircle (pos, config.portalRadius, color);
-            break;
-    }
+    obstacle.drawPreview (*this, valid);
 }
 
 void Renderer::drawPit (const Obstacle& pit)

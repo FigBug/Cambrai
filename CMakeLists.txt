@@ -23,7 +23,7 @@ set(SOURCES
     src/Game.cpp
     src/Tank.cpp
     src/Shell.cpp
-    src/Obstacle.cpp
+    src/Obstacles/Obstacle.cpp
     src/Player.cpp
     src/AIController.cpp
     src/Renderer.cpp
@@ -42,7 +42,15 @@ set(HEADERS
     src/Game.h
     src/Tank.h
     src/Shell.h
-    src/Obstacle.h
+    src/Obstacles/Obstacle.h
+    src/Obstacles/AllObstacles.h
+    src/Obstacles/SolidWall.h
+    src/Obstacles/BreakableWall.h
+    src/Obstacles/ReflectiveWall.h
+    src/Obstacles/Mine.h
+    src/Obstacles/AutoTurret.h
+    src/Obstacles/Pit.h
+    src/Obstacles/Portal.h
     src/Player.h
     src/AIController.h
     src/Renderer.h

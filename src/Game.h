@@ -3,7 +3,7 @@
 #include "AIController.h"
 #include "Audio.h"
 #include "Config.h"
-#include "Obstacle.h"
+#include "Obstacles/AllObstacles.h"
 #include "Player.h"
 #include "Renderer.h"
 #include "Shell.h"
@@ -63,7 +63,7 @@ private:
     std::array<std::unique_ptr<AIController>, MAX_TANKS> aiControllers;
     std::vector<Shell> shells;
     std::vector<Explosion> explosions;
-    std::vector<Obstacle> obstacles;
+    std::vector<std::unique_ptr<Obstacle>> obstacles;
 
     // Placement phase
     std::array<ObstacleType, MAX_PLAYERS> assignedObstacles;

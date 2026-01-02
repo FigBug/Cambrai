@@ -10,7 +10,7 @@ AIController::AIController()
 }
 
 void AIController::update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies,
-                           const std::vector<Shell>& shells, const std::vector<Obstacle>& obstacles,
+                           const std::vector<Shell>& shells, const std::vector<std::unique_ptr<Obstacle>>& obstacles,
                            float arenaWidth, float arenaHeight)
 {
     moveInput = { 0, 0 };
@@ -150,21 +150,21 @@ void AIController::pickNewWanderTarget (float arenaWidth, float arenaHeight)
     wanderTimer = config.aiWanderInterval * (0.8f + ((float) rand() / RAND_MAX) * 0.4f);
 }
 
-Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<Obstacle>& obstacles) const
+Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const
 {
     Vec2 avoidance = { 0, 0 };
     Vec2 pos = myTank.getPosition();
 
     for (const auto& obstacle : obstacles)
     {
-        if (!obstacle.isAlive())
+        if (!obstacle->isAlive())
             continue;
 
-        Vec2 toMe = pos - obstacle.getPosition();
+        Vec2 toMe = pos - obstacle->getPosition();
         float dist = toMe.length();
 
         float dangerDist = 100.0f;
-        if (obstacle.getType() == ObstacleType::Mine)
+        if (obstacle->getType() == ObstacleType::Mine)
             dangerDist = 80.0f;
 
         if (dist < dangerDist && dist > 0.1f)
