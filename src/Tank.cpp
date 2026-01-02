@@ -1,5 +1,6 @@
 #include "Tank.h"
 #include "Config.h"
+#include "Random.h"
 #include <algorithm>
 #include <cmath>
 
@@ -30,7 +31,15 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
 
     // Update trap timer
     if (trapTimer > 0.0f)
+    {
         trapTimer -= dt;
+        // When trap ends, start cooldown so tank can escape before being re-trapped
+        if (trapTimer <= 0.0f)
+        {
+            trapTimer = 0.0f;
+            startTeleportCooldown (config.portalCooldown);
+        }
+    }
 
     // Update teleport cooldown
     if (teleportCooldown > 0.0f)
@@ -430,18 +439,18 @@ void Tank::updateSmoke (float dt)
             // Random offset on damaged/destroying tanks
             if (damagePercent > 0.3f || destroying)
             {
-                float randomX = ((float) rand() / RAND_MAX - 0.5f) * size * 0.6f;
-                float randomY = ((float) rand() / RAND_MAX - 0.5f) * size * 0.6f;
+                float randomX = randomFloat (-0.5f, 0.5f) * size * 0.6f;
+                float randomY = randomFloat (-0.5f, 0.5f) * size * 0.6f;
                 spawnPos.x += randomX;
                 spawnPos.y += randomY;
             }
 
             float baseRadius = config.smokeBaseRadius + damagePercent * 3.0f;
-            float smokeRadius = baseRadius + ((float) rand() / RAND_MAX) * 2.0f;
+            float smokeRadius = baseRadius + randomFloat() * 2.0f;
 
             float startAlpha = (config.smokeBaseAlpha + damagePercent * 0.4f) * destroyFactor;
 
-            float lifetime = config.smokeFadeTimeMin + ((float) rand() / RAND_MAX) * (config.smokeFadeTimeMax - config.smokeFadeTimeMin);
+            float lifetime = randomFloat (config.smokeFadeTimeMin, config.smokeFadeTimeMax);
             float fadeRate = 1.0f / lifetime;
 
             smoke.push_back ({ spawnPos, smokeRadius, startAlpha, fadeRate });

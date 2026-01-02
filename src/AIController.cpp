@@ -1,12 +1,12 @@
 #include "AIController.h"
+#include "Random.h"
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 
 AIController::AIController()
 {
     // Random personality factor for variation between AI tanks
-    personalityFactor = 0.9f + ((float) rand() / RAND_MAX) * 0.2f;
+    personalityFactor = randomFloat (0.9f, 1.1f);
 }
 
 void AIController::update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies,
@@ -145,9 +145,9 @@ void AIController::update (float dt, const Tank& myTank, const std::vector<const
 void AIController::pickNewWanderTarget (float arenaWidth, float arenaHeight)
 {
     float margin = config.aiWanderMargin;
-    wanderTarget.x = margin + ((float) rand() / RAND_MAX) * (arenaWidth - 2.0f * margin);
-    wanderTarget.y = margin + ((float) rand() / RAND_MAX) * (arenaHeight - 2.0f * margin);
-    wanderTimer = config.aiWanderInterval * (0.8f + ((float) rand() / RAND_MAX) * 0.4f);
+    wanderTarget.x = randomFloat (margin, arenaWidth - margin);
+    wanderTarget.y = randomFloat (margin, arenaHeight - margin);
+    wanderTimer = config.aiWanderInterval * randomFloat (0.8f, 1.2f);
 }
 
 Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const
@@ -253,12 +253,12 @@ Vec2 AIController::getPlacementPosition (float arenaWidth, float arenaHeight) co
 {
     float margin = config.aiPlacementMargin;
     return {
-        margin + ((float) rand() / RAND_MAX) * (arenaWidth - 2.0f * margin),
-        margin + ((float) rand() / RAND_MAX) * (arenaHeight - 2.0f * margin)
+        randomFloat (margin, arenaWidth - margin),
+        randomFloat (margin, arenaHeight - margin)
     };
 }
 
 float AIController::getPlacementAngle() const
 {
-    return ((float) rand() / RAND_MAX) * 2.0f * pi;
+    return randomFloat (0.0f, 2.0f * pi);
 }

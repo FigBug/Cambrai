@@ -87,7 +87,7 @@ public:
         return ShellHitResult::Miss;
     }
 
-    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const override
+    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
         if (!alive)
             return false;

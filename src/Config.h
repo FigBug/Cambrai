@@ -90,9 +90,13 @@ public:
     float powerupDamageBonus          = 0.5f;       // +50% damage
     float powerupArmorBonus           = 0.5f;       // -50% damage taken
     float electromagnetRadius         = 30.0f;      // Electromagnet size
-    float electromagnetRange          = 200.0f;     // Pull range
+    float electromagnetRange          = 800.0f;     // Pull range
     float electromagnetForce          = 100.0f;     // Pull force
     float electromagnetDutyCycle      = 10.0f;      // On/off cycle duration (seconds)
+    float fanRadius                   = 20.0f;      // Fan size
+    float fanRange                    = 300.0f;     // How far the wind reaches
+    float fanWidth                    = 100.0f;     // Width of wind cone at max range
+    float fanForce                    = 150.0f;     // Push force
 
     // -------------------------------------------------------------------------
     // Smoke / Effects
@@ -124,7 +128,7 @@ public:
     // Collision
     // -------------------------------------------------------------------------
     float collisionRestitution        = 0.3f;
-    float collisionDamageScale        = 10.0f;
+    float collisionDamageScale        = 2.0f;
     float wallBounceMultiplier        = 0.2f;
 
     // -------------------------------------------------------------------------
@@ -156,6 +160,7 @@ public:
     float gameOverDelay               = 5.0f;       // Delay before reset after 10 rounds
     int pointsForSurviving            = 1;
     int pointsForKill                 = 1;
+    float stalemateTimeout            = 60.0f;      // Round ends in draw if no damage for this long
 
     // -------------------------------------------------------------------------
     // Colors - Environment
@@ -191,6 +196,8 @@ public:
     Color colorPowerupArmor           = { 100, 255, 100, 255 };   // Green
     Color colorElectromagnetOn        = { 100, 150, 255, 255 };   // Electric blue
     Color colorElectromagnetOff       = { 60, 80, 100, 255 };     // Dim blue
+    Color colorFan                    = { 180, 180, 180, 255 };   // Light grey
+    Color colorFanBlade               = { 100, 100, 100, 255 };   // Dark grey
 
     // -------------------------------------------------------------------------
     // Colors - UI

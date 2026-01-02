@@ -63,24 +63,16 @@ public:
         return { 0, 0 };
     }
 
-    ShellHitResult checkShellCollision (const Shell& shell, Vec2& collisionPoint, Vec2& normal) const override
+    ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {
-        if (!alive)
-            return ShellHitResult::Miss;
-
-        // Shells are destroyed when hitting the electromagnet
-        if (checkCircleCollision (shell, config.electromagnetRadius, collisionPoint, normal))
-            return ShellHitResult::Destroyed;
-
+        // Shells pass through electromagnets
         return ShellHitResult::Miss;
     }
 
-    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const override
+    bool checkTankCollision (const Tank&, Vec2&, float&) override
     {
-        if (!alive)
-            return false;
-
-        return checkCircleTankCollision (tank, config.electromagnetRadius, pushDirection, pushDistance);
+        // Tanks pass through electromagnets
+        return false;
     }
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override

@@ -54,6 +54,7 @@ set(HEADERS
     src/Obstacles/Flag.h
     src/Obstacles/Powerup.h
     src/Obstacles/Electromagnet.h
+    src/Obstacles/Fan.h
     src/Player.h
     src/AIController.h
     src/Renderer.h
@@ -61,9 +62,11 @@ set(HEADERS
     src/Vec2.h
     src/Platform.h
     src/FileSystemWatcher.h
+    src/Random.h
 )
 
-source_group("Source Files" FILES ${SOURCES} ${HEADERS})
+# Organize files in IDE to match disk layout
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src PREFIX "Source Files" FILES ${SOURCES} ${HEADERS})
 
 if(APPLE)
     set(ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/icon.icns)

@@ -26,7 +26,7 @@ public:
         return ShellHitResult::Miss;
     }
 
-    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const override
+    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
         if (!alive)
             return false;
@@ -36,6 +36,7 @@ public:
 
         if (dist < config.pitRadius)
         {
+            revealed = true;
             pushDirection = diff.normalized();
             pushDistance = 0.0f;  // No push, tank is trapped
             return true;
@@ -50,19 +51,23 @@ public:
 
     void draw (Renderer& renderer) const override
     {
+        unsigned char alpha = revealed ? 255 : 13;  // 0.05 * 255 ≈ 13
+
         // Dark pit with concentric rings for depth effect
-        renderer.drawFilledCircle (position, config.pitRadius, config.colorPit);
+        Color pitColor = config.colorPit;
+        pitColor.a = alpha;
+        renderer.drawFilledCircle (position, config.pitRadius, pitColor);
 
         // Inner darker ring
-        Color innerColor = { 20, 15, 10, 255 };
+        Color innerColor = { 20, 15, 10, alpha };
         renderer.drawFilledCircle (position, config.pitRadius * 0.7f, innerColor);
 
         // Center darkest
-        Color centerColor = { 10, 5, 0, 255 };
+        Color centerColor = { 10, 5, 0, alpha };
         renderer.drawFilledCircle (position, config.pitRadius * 0.4f, centerColor);
 
         // Outline
-        Color outlineColor = { 60, 50, 40, 255 };
+        Color outlineColor = { 60, 50, 40, alpha };
         renderer.drawCircle (position, config.pitRadius, outlineColor);
     }
 
@@ -71,4 +76,7 @@ public:
         Color color = valid ? config.colorPlacementValid : config.colorPlacementInvalid;
         renderer.drawFilledCircle (position, config.pitRadius, color);
     }
+
+private:
+    bool revealed = false;
 };

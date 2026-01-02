@@ -146,6 +146,7 @@ bool Config::load()
         loadValue (s, "speed", shellSpeed);
         loadValue (s, "radius", shellRadius);
         loadValue (s, "damageRadius", shellDamageRadius);
+        loadValue (s, "maxRange", shellMaxRange);
         loadValue (s, "maxBounces", maxShellBounces);
     }
 
@@ -168,6 +169,74 @@ bool Config::load()
         loadValue (s, "turretFireInterval", turretFireInterval);
         loadValue (s, "turretRange", turretRange);
         loadValue (s, "turretRotationSpeedAuto", turretRotationSpeedAuto);
+        loadValue (s, "turretHealth", turretHealth);
+        loadValue (s, "pitRadius", pitRadius);
+        loadValue (s, "pitTrapDuration", pitTrapDuration);
+        loadValue (s, "portalRadius", portalRadius);
+        loadValue (s, "portalCooldown", portalCooldown);
+        loadValue (s, "flagRadius", flagRadius);
+        loadValue (s, "flagPoints", flagPoints);
+        loadValue (s, "powerupRadius", powerupRadius);
+        loadValue (s, "powerupDuration", powerupDuration);
+        loadValue (s, "powerupSpeedBonus", powerupSpeedBonus);
+        loadValue (s, "powerupDamageBonus", powerupDamageBonus);
+        loadValue (s, "powerupArmorBonus", powerupArmorBonus);
+        loadValue (s, "electromagnetRadius", electromagnetRadius);
+        loadValue (s, "electromagnetRange", electromagnetRange);
+        loadValue (s, "electromagnetForce", electromagnetForce);
+        loadValue (s, "electromagnetDutyCycle", electromagnetDutyCycle);
+        loadValue (s, "fanRadius", fanRadius);
+        loadValue (s, "fanRange", fanRange);
+        loadValue (s, "fanWidth", fanWidth);
+        loadValue (s, "fanForce", fanForce);
+    }
+
+    // Effects
+    {
+        const auto& s = getSection ("effects");
+        loadValue (s, "smokeFadeTimeMin", smokeFadeTimeMin);
+        loadValue (s, "smokeFadeTimeMax", smokeFadeTimeMax);
+        loadValue (s, "smokeBaseSpawnInterval", smokeBaseSpawnInterval);
+        loadValue (s, "smokeDamageMultiplier", smokeDamageMultiplier);
+        loadValue (s, "smokeBaseRadius", smokeBaseRadius);
+        loadValue (s, "smokeBaseAlpha", smokeBaseAlpha);
+        loadValue (s, "trackMarkFadeTime", trackMarkFadeTime);
+        loadValue (s, "trackMarkSpawnDistance", trackMarkSpawnDistance);
+        loadValue (s, "trackMarkWidth", trackMarkWidth);
+        loadValue (s, "trackMarkLength", trackMarkLength);
+        loadValue (s, "explosionDuration", explosionDuration);
+        loadValue (s, "explosionMaxRadius", explosionMaxRadius);
+        loadValue (s, "destroyExplosionDuration", destroyExplosionDuration);
+        loadValue (s, "destroyExplosionMaxRadius", destroyExplosionMaxRadius);
+    }
+
+    // Collision
+    {
+        const auto& s = getSection ("collision");
+        loadValue (s, "restitution", collisionRestitution);
+        loadValue (s, "damageScale", collisionDamageScale);
+        loadValue (s, "wallBounceMultiplier", wallBounceMultiplier);
+    }
+
+    // AI
+    {
+        const auto& s = getSection ("ai");
+        loadValue (s, "wanderInterval", aiWanderInterval);
+        loadValue (s, "wanderMargin", aiWanderMargin);
+        loadValue (s, "fireDistance", aiFireDistance);
+        loadValue (s, "crosshairTolerance", aiCrosshairTolerance);
+        loadValue (s, "placementMargin", aiPlacementMargin);
+    }
+
+    // Audio
+    {
+        const auto& s = getSection ("audio");
+        loadValue (s, "gunSilenceDuration", audioGunSilenceDuration);
+        loadValue (s, "pitchVariation", audioPitchVariation);
+        loadValue (s, "gainVariation", audioGainVariation);
+        loadValue (s, "engineBaseVolume", audioEngineBaseVolume);
+        loadValue (s, "engineThrottleBoost", audioEngineThrottleBoost);
+        loadValue (s, "minImpactForSound", audioMinImpactForSound);
     }
 
     // Game Flow
@@ -180,6 +249,7 @@ bool Config::load()
         loadValue (s, "gameOverDelay", gameOverDelay);
         loadValue (s, "pointsForSurviving", pointsForSurviving);
         loadValue (s, "pointsForKill", pointsForKill);
+        loadValue (s, "stalemateTimeout", stalemateTimeout);
     }
 
     return true;
@@ -227,6 +297,7 @@ bool Config::save() const
         { "speed", shellSpeed },
         { "radius", shellRadius },
         { "damageRadius", shellDamageRadius },
+        { "maxRange", shellMaxRange },
         { "maxBounces", maxShellBounces }
     };
 
@@ -246,7 +317,71 @@ bool Config::save() const
         { "mineArmTime", mineArmTime },
         { "turretFireInterval", turretFireInterval },
         { "turretRange", turretRange },
-        { "turretRotationSpeedAuto", turretRotationSpeedAuto }
+        { "turretRotationSpeedAuto", turretRotationSpeedAuto },
+        { "turretHealth", turretHealth },
+        { "pitRadius", pitRadius },
+        { "pitTrapDuration", pitTrapDuration },
+        { "portalRadius", portalRadius },
+        { "portalCooldown", portalCooldown },
+        { "flagRadius", flagRadius },
+        { "flagPoints", flagPoints },
+        { "powerupRadius", powerupRadius },
+        { "powerupDuration", powerupDuration },
+        { "powerupSpeedBonus", powerupSpeedBonus },
+        { "powerupDamageBonus", powerupDamageBonus },
+        { "powerupArmorBonus", powerupArmorBonus },
+        { "electromagnetRadius", electromagnetRadius },
+        { "electromagnetRange", electromagnetRange },
+        { "electromagnetForce", electromagnetForce },
+        { "electromagnetDutyCycle", electromagnetDutyCycle },
+        { "fanRadius", fanRadius },
+        { "fanRange", fanRange },
+        { "fanWidth", fanWidth },
+        { "fanForce", fanForce }
+    };
+
+    // Effects
+    j["effects"] = {
+        { "smokeFadeTimeMin", smokeFadeTimeMin },
+        { "smokeFadeTimeMax", smokeFadeTimeMax },
+        { "smokeBaseSpawnInterval", smokeBaseSpawnInterval },
+        { "smokeDamageMultiplier", smokeDamageMultiplier },
+        { "smokeBaseRadius", smokeBaseRadius },
+        { "smokeBaseAlpha", smokeBaseAlpha },
+        { "trackMarkFadeTime", trackMarkFadeTime },
+        { "trackMarkSpawnDistance", trackMarkSpawnDistance },
+        { "trackMarkWidth", trackMarkWidth },
+        { "trackMarkLength", trackMarkLength },
+        { "explosionDuration", explosionDuration },
+        { "explosionMaxRadius", explosionMaxRadius },
+        { "destroyExplosionDuration", destroyExplosionDuration },
+        { "destroyExplosionMaxRadius", destroyExplosionMaxRadius }
+    };
+
+    // Collision
+    j["collision"] = {
+        { "restitution", collisionRestitution },
+        { "damageScale", collisionDamageScale },
+        { "wallBounceMultiplier", wallBounceMultiplier }
+    };
+
+    // AI
+    j["ai"] = {
+        { "wanderInterval", aiWanderInterval },
+        { "wanderMargin", aiWanderMargin },
+        { "fireDistance", aiFireDistance },
+        { "crosshairTolerance", aiCrosshairTolerance },
+        { "placementMargin", aiPlacementMargin }
+    };
+
+    // Audio
+    j["audio"] = {
+        { "gunSilenceDuration", audioGunSilenceDuration },
+        { "pitchVariation", audioPitchVariation },
+        { "gainVariation", audioGainVariation },
+        { "engineBaseVolume", audioEngineBaseVolume },
+        { "engineThrottleBoost", audioEngineThrottleBoost },
+        { "minImpactForSound", audioMinImpactForSound }
     };
 
     // Game Flow
@@ -257,7 +392,8 @@ bool Config::save() const
         { "roundOverDelay", roundOverDelay },
         { "gameOverDelay", gameOverDelay },
         { "pointsForSurviving", pointsForSurviving },
-        { "pointsForKill", pointsForKill }
+        { "pointsForKill", pointsForKill },
+        { "stalemateTimeout", stalemateTimeout }
     };
 
     std::ofstream file (path);

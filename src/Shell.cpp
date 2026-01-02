@@ -30,4 +30,10 @@ void Shell::reflect (Vec2 normal)
     float dot = velocity.dot (normal);
     velocity = velocity - normal * (2.0f * dot);
     bounceCount++;
+
+    // Push shell away from wall to prevent immediate re-collision
+    position = position + normal * 5.0f;
+
+    // Reset start position so shell gets fresh range after bouncing
+    startPosition = position;
 }

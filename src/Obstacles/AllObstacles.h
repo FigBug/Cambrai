@@ -11,6 +11,7 @@
 #include "Flag.h"
 #include "Powerup.h"
 #include "Electromagnet.h"
+#include "Fan.h"
 
 inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 position, float angle, int ownerIndex)
 {
@@ -36,6 +37,8 @@ inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 positio
             return std::make_unique<Powerup> (position, angle, ownerIndex);
         case ObstacleType::Electromagnet:
             return std::make_unique<Electromagnet> (position, angle, ownerIndex);
+        case ObstacleType::Fan:
+            return std::make_unique<Fan> (position, angle, ownerIndex);
     }
     return nullptr;
 }

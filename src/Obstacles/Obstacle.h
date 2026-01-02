@@ -23,7 +23,8 @@ enum class ObstacleType
     Portal,
     Flag,
     Powerup,
-    Electromagnet
+    Electromagnet,
+    Fan
 };
 
 enum class PowerupType
@@ -75,7 +76,7 @@ public:
     }
 
     virtual ShellHitResult checkShellCollision (const Shell& shell, Vec2& collisionPoint, Vec2& normal) const = 0;
-    virtual bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const = 0;
+    virtual bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) = 0;
     virtual bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const = 0;
 
     virtual void draw (Renderer& renderer) const = 0;
@@ -165,7 +166,7 @@ public:
         return worldCorners;
     }
 
-    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const override;
+    bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override;
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override
     {

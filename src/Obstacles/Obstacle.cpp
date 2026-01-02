@@ -53,7 +53,7 @@ bool Obstacle::isValidCirclePlacement (float radius, const std::vector<std::uniq
     return true;
 }
 
-bool Wall::checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) const
+bool Wall::checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance)
 {
     if (!alive)
         return false;

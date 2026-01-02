@@ -1,12 +1,12 @@
 #include "Game.h"
 #include "Obstacles/Electromagnet.h"
+#include "Obstacles/Fan.h"
 #include "Obstacles/Flag.h"
 #include "Obstacles/Powerup.h"
+#include "Random.h"
 #include <raylib.h>
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
 
 Game::Game() = default;
 
@@ -14,8 +14,6 @@ Game::~Game() = default;
 
 bool Game::init()
 {
-    srand ((unsigned int) ::time (nullptr));
-
     SetConfigFlags (FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
     InitWindow (WINDOW_WIDTH, WINDOW_HEIGHT, "Cambrai");
     SetTargetFPS (60);
@@ -155,7 +153,7 @@ void Game::startPlacement()
     // Shuffle starting positions
     for (int i = MAX_TANKS - 1; i > 0; --i)
     {
-        int j = rand() % (i + 1);
+        int j = randomInt (i + 1);
         std::swap (startPositionOrder[i], startPositionOrder[j]);
     }
 
@@ -209,7 +207,7 @@ void Game::assignRandomObstacles()
 
 ObstacleType Game::getRandomObstacleType()
 {
-    int r = rand() % 10;
+    int r = randomInt (11);
     switch (r)
     {
         case 0: return ObstacleType::SolidWall;
@@ -222,6 +220,7 @@ ObstacleType Game::getRandomObstacleType()
         case 7: return ObstacleType::Flag;
         case 8: return ObstacleType::Powerup;
         case 9: return ObstacleType::Electromagnet;
+        case 10: return ObstacleType::Fan;
         default: return ObstacleType::SolidWall;
     }
 }
@@ -334,6 +333,11 @@ void Game::startRound()
     for (int i = 0; i < MAX_PLAYERS; ++i)
         kills[i] = 0;
 
+    // Reset stalemate detection
+    noDamageTimer = 0.0f;
+    for (int i = 0; i < MAX_TANKS; ++i)
+        lastTankHealth[i] = tanks[i] ? tanks[i]->getHealth() : 0.0f;
+
     roundWinner = -1;
     state = GameState::Playing;
 }
@@ -424,6 +428,20 @@ void Game::updatePlaying (float dt)
             }
         }
 
+        // Apply fan forces
+        if (obstacle->getType() == ObstacleType::Fan && obstacle->isAlive())
+        {
+            auto* fan = static_cast<Fan*> (obstacle.get());
+            for (auto& tank : tanks)
+            {
+                if (tank && tank->isAlive())
+                {
+                    Vec2 pushForce = fan->calculatePushForce (*tank);
+                    tank->applyExternalForce (pushForce);
+                }
+            }
+        }
+
         // Handle flag capture (consumeCapture returns true only once)
         if (obstacle->getType() == ObstacleType::Flag)
         {
@@ -496,6 +514,9 @@ void Game::updatePlaying (float dt)
                         { return ! e.isAlive(); }),
         explosions.end());
 
+    // Update stalemate timer
+    noDamageTimer += dt;
+
     // Check round over
     checkRoundOver();
 }
@@ -551,6 +572,7 @@ void Game::checkCollisions()
                 if (result == ShellHitResult::Reflected)
                 {
                     shell.reflect (normal);
+                    break;  // Only one reflection per frame
                 }
                 else  // Destroyed
                 {
@@ -714,7 +736,7 @@ void Game::checkCollisions()
                         // Teleport to random portal if there are others
                         if (!otherPortals.empty())
                         {
-                            Obstacle* destPortal = otherPortals[rand() % otherPortals.size()];
+                            Obstacle* destPortal = otherPortals[randomInt ((int) otherPortals.size())];
                             tank->teleportTo (destPortal->getPosition());
                         }
                     }
@@ -766,6 +788,30 @@ void Game::checkCollisions()
                 tanks[i]->takeDamage (damage, j);
                 tanks[j]->takeDamage (damage, i);
 
+                // Track kills from ramming
+                if (!tanks[i]->isAlive())
+                {
+                    kills[j]++;
+                    scores[j] += config.pointsForKill;
+
+                    Explosion destroyExplosion;
+                    destroyExplosion.position = tanks[i]->getPosition();
+                    destroyExplosion.duration = config.destroyExplosionDuration;
+                    destroyExplosion.maxRadius = config.destroyExplosionMaxRadius;
+                    explosions.push_back (destroyExplosion);
+                }
+                if (!tanks[j]->isAlive())
+                {
+                    kills[i]++;
+                    scores[i] += config.pointsForKill;
+
+                    Explosion destroyExplosion;
+                    destroyExplosion.position = tanks[j]->getPosition();
+                    destroyExplosion.duration = config.destroyExplosionDuration;
+                    destroyExplosion.maxRadius = config.destroyExplosionMaxRadius;
+                    explosions.push_back (destroyExplosion);
+                }
+
                 if (audio && impactSpeed > config.audioMinImpactForSound)
                     audio->playCollision (collisionPoint.x, arenaWidth);
             }
@@ -778,14 +824,24 @@ void Game::checkRoundOver()
     int aliveCount = 0;
     int lastAlive = -1;
 
+    // Check for damage taken (stalemate detection)
+    bool damageTaken = false;
     for (int i = 0; i < MAX_TANKS; ++i)
     {
         if (tanks[i] && tanks[i]->isAlive() && !tanks[i]->isDestroying())
         {
             aliveCount++;
             lastAlive = i;
+
+            float currentHealth = tanks[i]->getHealth();
+            if (currentHealth < lastTankHealth[i])
+                damageTaken = true;
+            lastTankHealth[i] = currentHealth;
         }
     }
+
+    if (damageTaken)
+        noDamageTimer = 0.0f;
 
     if (aliveCount <= 1)
     {
@@ -795,6 +851,13 @@ void Game::checkRoundOver()
         if (roundWinner >= 0)
             scores[roundWinner] += config.pointsForSurviving;
 
+        stateTimer = 0.0f;
+        state = GameState::RoundOver;
+    }
+    // Stalemate - no damage for too long
+    else if (aliveCount > 1 && noDamageTimer >= config.stalemateTimeout)
+    {
+        roundWinner = -1;  // Draw
         stateTimer = 0.0f;
         state = GameState::RoundOver;
     }
@@ -1011,6 +1074,7 @@ void Game::renderPlacement()
             case ObstacleType::Flag: typeText = "FLAG"; break;
             case ObstacleType::Powerup: typeText = "POWERUP"; break;
             case ObstacleType::Electromagnet: typeText = "ELECTROMAGNET"; break;
+            case ObstacleType::Fan: typeText = "FAN"; break;
         }
 
         std::string statusText = hasPlaced[i] ? "PLACED" : typeText;

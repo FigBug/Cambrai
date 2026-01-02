@@ -57,7 +57,7 @@ public:
         return ShellHitResult::Miss;
     }
 
-    bool checkTankCollision (const Tank&, Vec2&, float&) const override
+    bool checkTankCollision (const Tank&, Vec2&, float&) override
     {
         // Tanks don't collide with flags (they capture them)
         return false;
