@@ -39,4 +39,5 @@ private:
     Vec2 avoidObstacles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const;
     Vec2 avoidShells (const Tank& myTank, const std::vector<Shell>& shells) const;
     const Tank* findBestTarget (const Tank& myTank, const std::vector<const Tank*>& enemies) const;
+    Vec2 seekCollectibles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const;
 };

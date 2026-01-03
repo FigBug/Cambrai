@@ -4,6 +4,7 @@
 #include "SolidWall.h"
 #include "BreakableWall.h"
 #include "ReflectiveWall.h"
+#include "RicochetWall.h"
 #include "Mine.h"
 #include "AutoTurret.h"
 #include "Pit.h"
@@ -23,6 +24,8 @@ inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 positio
             return std::make_unique<BreakableWall> (position, angle, ownerIndex);
         case ObstacleType::ReflectiveWall:
             return std::make_unique<ReflectiveWall> (position, angle, ownerIndex);
+        case ObstacleType::RicochetWall:
+            return std::make_unique<RicochetWall> (position, angle, ownerIndex);
         case ObstacleType::Mine:
             return std::make_unique<Mine> (position, angle, ownerIndex);
         case ObstacleType::AutoTurret:

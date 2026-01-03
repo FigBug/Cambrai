@@ -47,6 +47,7 @@ set(HEADERS
     src/Obstacles/SolidWall.h
     src/Obstacles/BreakableWall.h
     src/Obstacles/ReflectiveWall.h
+    src/Obstacles/RicochetWall.h
     src/Obstacles/Mine.h
     src/Obstacles/AutoTurret.h
     src/Obstacles/Pit.h

@@ -164,6 +164,7 @@ ObstacleType Game::indexToObstacleType (int index) const
         case 8: return ObstacleType::HealthPack;
         case 9: return ObstacleType::Electromagnet;
         case 10: return ObstacleType::Fan;
+        case 11: return ObstacleType::RicochetWall;
         default: return ObstacleType::SolidWall;
     }
 }
@@ -183,6 +184,7 @@ std::string Game::obstacleTypeName (ObstacleType type) const
         case ObstacleType::HealthPack: return "HEALTH";
         case ObstacleType::Electromagnet: return "MAGNET";
         case ObstacleType::Fan: return "FAN";
+        case ObstacleType::RicochetWall: return "RICOCHET";
         default: return "UNKNOWN";
     }
 }
@@ -200,13 +202,13 @@ bool Game::isObstacleSelectedByOther (int obstacleIndex, int playerIndex) const
 int Game::findAvailableObstacle (int startIndex, int playerIndex) const
 {
     // Find the first available obstacle starting from startIndex
-    for (int offset = 0; offset < 11; ++offset)
+    for (int offset = 0; offset < 12; ++offset)
     {
-        int idx = (startIndex + offset) % 11;
+        int idx = (startIndex + offset) % 12;
         if (!isObstacleSelectedByOther (idx, playerIndex))
             return idx;
     }
-    return startIndex;  // Shouldn't happen with 4 players and 11 obstacles
+    return startIndex;  // Shouldn't happen with 4 players and 12 obstacles
 }
 
 void Game::startSelection()
@@ -264,8 +266,8 @@ void Game::updateSelection (float dt)
 
                         // Wrap around horizontally and to adjacent rows
                         if (currentIndex < 0)
-                            currentIndex = 10;  // Wrap to last valid cell
-                        else if (currentIndex > 10)
+                            currentIndex = 11;  // Wrap to last cell
+                        else if (currentIndex > 11)
                             currentIndex = 0;   // Wrap to first cell
                     }
                     else if (navY != 0)
@@ -283,15 +285,6 @@ void Game::updateSelection (float dt)
                             row = 0;
 
                         currentIndex = row * 4 + col;
-
-                        // Handle empty cell (index 11) - move to valid cell
-                        if (currentIndex > 10)
-                        {
-                            if (navY > 0)
-                                currentIndex = col;  // Wrap to top
-                            else
-                                currentIndex = 10;   // Go to Fan instead
-                        }
                     }
 
                     // If this cell is available, use it
@@ -344,8 +337,6 @@ void Game::updateSelection (float dt)
                 }
 
                 int newIndex = row * 4 + col;
-                if (newIndex > 10)
-                    newIndex = 10;
 
                 if (!isObstacleSelectedByOther (newIndex, i))
                     selectionCursorIndex[i] = newIndex;
@@ -427,8 +418,6 @@ void Game::renderSelection()
         for (int col = 0; col < cols; ++col)
         {
             int idx = row * cols + col;
-            if (idx > 10)
-                continue;  // Skip empty cell
 
             float cellX = gridStartX + col * (cellWidth + cellSpacing);
             float cellY = gridStartY + row * (cellHeight + cellSpacing);
@@ -955,6 +944,31 @@ void Game::checkCollisions()
                     shell.reflect (normal);
                     break;  // Only one reflection per frame
                 }
+                else if (result == ShellHitResult::Ricochet)
+                {
+                    // Create 5 shells with spread angles
+                    Vec2 shellVel = shell.getVelocity();
+                    float speed = shellVel.length();
+
+                    // Reflect base velocity
+                    float dot = shellVel.dot (normal);
+                    Vec2 reflectedVel = shellVel - normal * (2.0f * dot);
+                    float baseAngle = std::atan2 (reflectedVel.y, reflectedVel.x);
+
+                    // Spawn 5 shells with angles spread around the reflected direction
+                    float spreadAngles[5] = { -0.3f, -0.15f, 0.0f, 0.15f, 0.3f };
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        float angle = baseAngle + spreadAngles[i];
+                        Vec2 newVel = { std::cos (angle) * speed, std::sin (angle) * speed };
+                        Vec2 spawnPos = collisionPoint + normal * 5.0f;
+                        shells.push_back (Shell (spawnPos, newVel, shell.getOwnerIndex(),
+                                                 shell.getMaxRange() * 0.5f, shell.getDamage() * 0.4f));
+                    }
+
+                    shell.kill();
+                    break;
+                }
                 else  // Destroyed
                 {
                     // Damage destructible obstacles (breakable walls, turrets)
@@ -1003,9 +1017,6 @@ void Game::checkCollisions()
         {
             if (!tank || !tank->isVisible())
                 continue;
-
-            if (tank->getPlayerIndex() == shell.getOwnerIndex())
-                continue;  // Don't hit own tank
 
             Vec2 hitPoint;
             if (renderer->checkTankHitLine (*tank, shellPrev, shellCur, hitPoint))
@@ -1429,6 +1440,7 @@ void Game::renderPlacement()
             case ObstacleType::HealthPack: typeText = "HEALTH PACK"; break;
             case ObstacleType::Electromagnet: typeText = "ELECTROMAGNET"; break;
             case ObstacleType::Fan: typeText = "FAN"; break;
+            case ObstacleType::RicochetWall: typeText = "RICOCHET WALL"; break;
         }
 
         std::string statusText = hasPlaced[i] ? "PLACED" : typeText;

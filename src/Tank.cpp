@@ -475,7 +475,7 @@ void Tank::startTeleportCooldown (float duration)
 void Tank::teleportTo (Vec2 newPosition)
 {
     position = newPosition;
-    velocity = { 0.0f, 0.0f };
+    // Maintain velocity/speed through portal
     startTeleportCooldown (config.portalCooldown);
 }
 

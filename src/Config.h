@@ -187,6 +187,7 @@ public:
     Color colorSolidWall              = { 100, 100, 100, 255 };
     Color colorBreakableWall          = { 139, 90, 43, 255 };
     Color colorReflectiveWall         = { 180, 180, 220, 255 };
+    Color colorRicochetWall           = { 220, 140, 80, 255 };   // Orange
     Color colorMine                   = { 80, 80, 80, 255 };
     Color colorMineArmed              = { 200, 50, 50, 255 };
     Color colorAutoTurret             = { 60, 60, 60, 255 };

@@ -17,6 +17,7 @@ enum class ObstacleType
     SolidWall,
     BreakableWall,
     ReflectiveWall,
+    RicochetWall,
     Mine,
     AutoTurret,
     Pit,
@@ -32,7 +33,8 @@ enum class ShellHitResult
 {
     Miss,
     Destroyed,
-    Reflected
+    Reflected,
+    Ricochet  // Splits into multiple shells
 };
 
 class Obstacle

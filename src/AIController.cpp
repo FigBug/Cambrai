@@ -41,6 +41,10 @@ void AIController::update (float dt, const Tank& myTank, const std::vector<const
         desiredDirection = desiredDirection + toWander.normalized();
     }
 
+    // Seek flags and powerups
+    Vec2 collectibleSeek = seekCollectibles (myTank, obstacles);
+    desiredDirection = desiredDirection + collectibleSeek * 2.5f;
+
     // Avoid obstacles
     Vec2 obstacleAvoid = avoidObstacles (myTank, obstacles);
     desiredDirection = desiredDirection + obstacleAvoid * 2.0f;
@@ -166,6 +170,8 @@ Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<std::un
         float dangerDist = 100.0f;
         if (obstacle->getType() == ObstacleType::Mine)
             dangerDist = 80.0f;
+        else if (obstacle->getType() == ObstacleType::AutoTurret)
+            dangerDist = 350.0f;  // Stay out of turret range
 
         if (dist < dangerDist && dist > 0.1f)
         {
@@ -261,4 +267,52 @@ Vec2 AIController::getPlacementPosition (float arenaWidth, float arenaHeight) co
 float AIController::getPlacementAngle() const
 {
     return randomFloat (0.0f, 2.0f * pi);
+}
+
+Vec2 AIController::seekCollectibles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const
+{
+    Vec2 seek = { 0, 0 };
+    Vec2 pos = myTank.getPosition();
+
+    const Obstacle* bestTarget = nullptr;
+    float bestScore = -9999.0f;
+
+    for (const auto& obstacle : obstacles)
+    {
+        if (!obstacle->isAlive())
+            continue;
+
+        ObstacleType type = obstacle->getType();
+        if (type != ObstacleType::Flag && type != ObstacleType::HealthPack)
+            continue;
+
+        Vec2 toCollectible = obstacle->getPosition() - pos;
+        float dist = toCollectible.length();
+
+        // Score based on distance (closer is better)
+        // Flags are slightly more valuable due to points
+        float baseValue = (type == ObstacleType::Flag) ? 1.2f : 1.0f;
+        float distScore = baseValue * (1.0f - std::min (1.0f, dist / 500.0f));
+
+        if (distScore > bestScore)
+        {
+            bestScore = distScore;
+            bestTarget = obstacle.get();
+        }
+    }
+
+    if (bestTarget)
+    {
+        Vec2 toTarget = bestTarget->getPosition() - pos;
+        float dist = toTarget.length();
+
+        if (dist > 10.0f)
+        {
+            // Stronger pull when closer
+            float urgency = 1.0f - std::min (1.0f, dist / 400.0f);
+            seek = toTarget.normalized() * (0.5f + urgency * 0.5f);
+        }
+    }
+
+    return seek;
 }

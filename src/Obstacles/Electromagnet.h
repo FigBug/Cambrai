@@ -78,7 +78,6 @@ private:
     }
 
 public:
-
     ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {
         // Shells pass through electromagnets
