@@ -71,6 +71,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     {
         velocity = { 0.0f, 0.0f };
         throttle = 0.0f;
+        externalForce = { 0, 0 };  // Clear accumulated forces so tank doesn't shoot out when released
         updateTurret (dt);
         updateSmoke (dt);
         return;
@@ -309,6 +310,15 @@ void Tank::takeDamage (float damage, int attackerIndex)
         destroyTimer = 0.0f;
         killerIndex = attackerIndex;
     }
+}
+
+void Tank::heal (float percent)
+{
+    if (destroying || !isAlive())
+        return;
+
+    float healAmount = config.tankMaxHealth * percent;
+    health = std::min (health + healAmount, config.tankMaxHealth);
 }
 
 void Tank::applyCollision (Vec2 pushDirection, float pushDistance, Vec2 impulse)

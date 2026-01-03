@@ -15,6 +15,7 @@
 enum class GameState
 {
     Title,
+    Selection,    // Players select their obstacles from grid
     Placement,    // Players place their obstacles
     Playing,
     RoundOver,
@@ -65,6 +66,16 @@ private:
     std::vector<Explosion> explosions;
     std::vector<std::unique_ptr<Obstacle>> obstacles;
 
+    // Selection phase
+    std::array<int, MAX_PLAYERS> selectionCursorIndex = {};   // Grid position (0-10)
+    std::array<bool, MAX_PLAYERS> hasSelected = {};
+    std::array<int, MAX_PLAYERS> selectedObstacleIndex = {};  // Which obstacle type selected
+    float selectionTimer = 0.0f;
+
+    // AI selection behavior
+    std::array<float, MAX_PLAYERS> aiSelectionMoveTimer = {};
+    std::array<float, MAX_PLAYERS> aiSelectionConfirmTimer = {};
+
     // Placement phase
     std::array<ObstacleType, MAX_PLAYERS> assignedObstacles;
     std::array<bool, MAX_PLAYERS> hasPlaced;
@@ -93,12 +104,19 @@ private:
     void renderTitle();
     bool anyButtonPressed();
 
+    // Selection phase
+    void startSelection();
+    void updateSelection (float dt);
+    void renderSelection();
+    ObstacleType indexToObstacleType (int index) const;
+    std::string obstacleTypeName (ObstacleType type) const;
+    bool isObstacleSelectedByOther (int obstacleIndex, int playerIndex) const;
+    int findAvailableObstacle (int startIndex, int playerIndex) const;
+
     // Placement phase
     void startPlacement();
     void updatePlacement (float dt);
     void renderPlacement();
-    void assignRandomObstacles();
-    ObstacleType getRandomObstacleType();
 
     // Gameplay
     void startRound();

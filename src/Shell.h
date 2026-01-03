@@ -28,6 +28,9 @@ public:
     void reflect (Vec2 normal);
     bool canReflect() const { return bounceCount < config.maxShellBounces; }
 
+    // Apply external force (from fan/magnet)
+    void applyForce (Vec2 force, float dt) { velocity += force * dt; }
+
 private:
     Vec2 position;
     Vec2 previousPosition;

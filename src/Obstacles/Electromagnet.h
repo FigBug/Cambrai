@@ -3,6 +3,7 @@
 #include "Obstacle.h"
 #include "../Renderer.h"
 #include "../Tank.h"
+#include "../Random.h"
 
 class Electromagnet : public Obstacle
 {
@@ -10,8 +11,10 @@ public:
     Electromagnet (Vec2 position, float angle, int ownerIndex)
         : Obstacle (position, angle, ownerIndex)
     {
-        // Start with random phase based on position
-        cycleTimer = std::fmod (position.x + position.y, config.electromagnetDutyCycle);
+        // Randomize cycle duration (+/- 30%) so magnets don't sync up
+        cycleDuration = config.electromagnetDutyCycle * (0.7f + randomFloat() * 0.6f);
+        // Start with random phase
+        cycleTimer = randomFloat() * cycleDuration;
     }
 
     ObstacleType getType() const override { return ObstacleType::Electromagnet; }
@@ -28,11 +31,11 @@ public:
 
         // Update duty cycle
         cycleTimer += dt;
-        if (cycleTimer >= config.electromagnetDutyCycle)
-            cycleTimer -= config.electromagnetDutyCycle;
+        if (cycleTimer >= cycleDuration)
+            cycleTimer -= cycleDuration;
 
         // On for first half, off for second half
-        active = cycleTimer < config.electromagnetDutyCycle * 0.5f;
+        active = cycleTimer < cycleDuration * 0.5f;
 
         // Update pulse animation
         if (active)
@@ -46,10 +49,22 @@ public:
     // Calculate pull force on a tank (to be applied by Game)
     Vec2 calculatePullForce (const Tank& tank) const
     {
+        return calculatePullForceAtPosition (tank.getPosition(), config.electromagnetForce);
+    }
+
+    // Calculate pull force on a shell (stronger effect on lighter projectiles)
+    Vec2 calculateShellPullForce (Vec2 shellPos) const
+    {
+        return calculatePullForceAtPosition (shellPos, config.electromagnetForce * 5.0f);
+    }
+
+private:
+    Vec2 calculatePullForceAtPosition (Vec2 targetPos, float force) const
+    {
         if (!alive || !active)
             return { 0, 0 };
 
-        Vec2 toMagnet = position - tank.getPosition();
+        Vec2 toMagnet = position - targetPos;
         float dist = toMagnet.length();
 
         if (dist < config.electromagnetRange && dist > config.electromagnetRadius)
@@ -57,11 +72,13 @@ public:
             // Force falls off with distance squared
             float strength = 1.0f - (dist / config.electromagnetRange);
             strength *= strength;  // Quadratic falloff
-            return toMagnet.normalized() * config.electromagnetForce * strength;
+            return toMagnet.normalized() * force * strength;
         }
 
         return { 0, 0 };
     }
+
+public:
 
     ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {
@@ -134,6 +151,7 @@ public:
 private:
     bool active = true;
     float cycleTimer = 0.0f;
+    float cycleDuration = 10.0f;  // Randomized in constructor
     float pulseTimer = 0.0f;
 
     static constexpr float pi = 3.14159265358979323846f;

@@ -163,6 +163,14 @@ public:
     float stalemateTimeout            = 60.0f;      // Round ends in draw if no damage for this long
 
     // -------------------------------------------------------------------------
+    // Selection Phase
+    // -------------------------------------------------------------------------
+    float selectionTime               = 10.0f;      // Seconds for obstacle selection
+    float aiSelectionMinDelay         = 1.0f;       // Min time before AI confirms
+    float aiSelectionMaxDelay         = 5.0f;       // Max time before AI confirms
+    float aiSelectionMoveInterval     = 0.5f;       // How often AI moves cursor
+
+    // -------------------------------------------------------------------------
     // Colors - Environment
     // -------------------------------------------------------------------------
     Color colorDirt                   = { 139, 119, 101, 255 };
@@ -244,6 +252,14 @@ public:
     Color colorPlacementValid         = { 100, 255, 100, 150 };
     Color colorPlacementInvalid       = { 255, 100, 100, 150 };
     Color colorPlacementTimer         = { 255, 220, 100, 255 };
+
+    // -------------------------------------------------------------------------
+    // Colors - Selection Phase
+    // -------------------------------------------------------------------------
+    Color colorSelectionGrid          = { 80, 80, 80, 255 };
+    Color colorSelectionCell          = { 50, 50, 50, 200 };
+    Color colorSelectionTaken         = { 40, 40, 40, 150 };
+    Color colorSelectionText          = { 200, 200, 200, 255 };
 
 private:
     std::string getConfigPath() const;

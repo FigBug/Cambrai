@@ -1,5 +1,9 @@
 # Cambrai
 
+[![Build macOS](https://github.com/FigBug/Cambrai/actions/workflows/build_macos.yml/badge.svg)](https://github.com/FigBug/Cambrai/actions/workflows/build_macos.yml)
+[![Build Linux](https://github.com/FigBug/Cambrai/actions/workflows/build_linux.yml/badge.svg)](https://github.com/FigBug/Cambrai/actions/workflows/build_linux.yml)
+[![Build Windows](https://github.com/FigBug/Cambrai/actions/workflows/build_windows.yml/badge.svg)](https://github.com/FigBug/Cambrai/actions/workflows/build_windows.yml)
+
 A multiplayer tank battle game for up to 4 players. Battle in an arena with destructible obstacles, mines, turrets, portals, and more.
 
 ## Features

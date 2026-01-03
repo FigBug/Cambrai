@@ -20,6 +20,11 @@ public:
     Vec2 getMousePosition() const { return mousePosition; }
     int getPlayerIndex() const { return playerIndex; }
 
+    // Grid navigation (selection phase)
+    int getNavigationX() const { return navX; }  // -1, 0, +1
+    int getNavigationY() const { return navY; }  // -1, 0, +1
+    bool getConfirmInput() const { return confirmInput; }
+
 private:
     int playerIndex;
     int gamepadId = -1;
@@ -31,6 +36,11 @@ private:
     bool fireInput = false;
     bool placeInput = false;
     bool rotateInput = false;
+
+    // Grid navigation
+    int navX = 0;
+    int navY = 0;
+    bool confirmInput = false;
 
     float deadzone = 0.15f;
 

@@ -102,6 +102,9 @@ void Game::update (float dt)
         case GameState::Title:
             updateTitle (dt);
             break;
+        case GameState::Selection:
+            updateSelection (dt);
+            break;
         case GameState::Placement:
             updatePlacement (dt);
             break;
@@ -121,7 +124,7 @@ void Game::updateTitle (float dt)
 {
     if (anyButtonPressed())
     {
-        startPlacement();
+        startSelection();
     }
 }
 
@@ -146,10 +149,408 @@ bool Game::anyButtonPressed()
     return false;
 }
 
-void Game::startPlacement()
+// =============================================================================
+// Selection Phase
+// =============================================================================
+
+ObstacleType Game::indexToObstacleType (int index) const
+{
+    switch (index)
+    {
+        case 0: return ObstacleType::SolidWall;
+        case 1: return ObstacleType::BreakableWall;
+        case 2: return ObstacleType::ReflectiveWall;
+        case 3: return ObstacleType::Mine;
+        case 4: return ObstacleType::AutoTurret;
+        case 5: return ObstacleType::Pit;
+        case 6: return ObstacleType::Portal;
+        case 7: return ObstacleType::Flag;
+        case 8: return ObstacleType::Powerup;
+        case 9: return ObstacleType::Electromagnet;
+        case 10: return ObstacleType::Fan;
+        default: return ObstacleType::SolidWall;
+    }
+}
+
+std::string Game::obstacleTypeName (ObstacleType type) const
+{
+    switch (type)
+    {
+        case ObstacleType::SolidWall: return "SOLID WALL";
+        case ObstacleType::BreakableWall: return "BREAKABLE";
+        case ObstacleType::ReflectiveWall: return "MIRROR";
+        case ObstacleType::Mine: return "MINE";
+        case ObstacleType::AutoTurret: return "TURRET";
+        case ObstacleType::Pit: return "PIT";
+        case ObstacleType::Portal: return "PORTAL";
+        case ObstacleType::Flag: return "FLAG";
+        case ObstacleType::Powerup: return "HEALTH";
+        case ObstacleType::Electromagnet: return "MAGNET";
+        case ObstacleType::Fan: return "FAN";
+        default: return "UNKNOWN";
+    }
+}
+
+bool Game::isObstacleSelectedByOther (int obstacleIndex, int playerIndex) const
+{
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        if (i != playerIndex && hasSelected[i] && selectedObstacleIndex[i] == obstacleIndex)
+            return true;
+    }
+    return false;
+}
+
+int Game::findAvailableObstacle (int startIndex, int playerIndex) const
+{
+    // Find the first available obstacle starting from startIndex
+    for (int offset = 0; offset < 11; ++offset)
+    {
+        int idx = (startIndex + offset) % 11;
+        if (!isObstacleSelectedByOther (idx, playerIndex))
+            return idx;
+    }
+    return startIndex;  // Shouldn't happen with 4 players and 11 obstacles
+}
+
+void Game::startSelection()
 {
     currentRound++;
+    selectionTimer = config.selectionTime;
 
+    // Initialize cursor positions spread across the grid
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        hasSelected[i] = false;
+        selectedObstacleIndex[i] = -1;
+        selectionCursorIndex[i] = findAvailableObstacle (i * 3, i);  // Spread initial positions
+
+        // AI selection timing
+        aiSelectionMoveTimer[i] = config.aiSelectionMoveInterval;
+        aiSelectionConfirmTimer[i] = config.aiSelectionMinDelay +
+            randomFloat() * (config.aiSelectionMaxDelay - config.aiSelectionMinDelay);
+    }
+
+    state = GameState::Selection;
+}
+
+void Game::updateSelection (float dt)
+{
+    selectionTimer -= dt;
+
+    // Update each player
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        if (hasSelected[i])
+            continue;
+
+        bool isHuman = players[i]->isConnected();
+
+        if (isHuman)
+        {
+            // Human player navigation
+            int navX = players[i]->getNavigationX();
+            int navY = players[i]->getNavigationY();
+
+            if (navX != 0 || navY != 0)
+            {
+                int currentIndex = selectionCursorIndex[i];
+                int startIndex = currentIndex;
+
+                // Keep moving until we find an available cell (or wrap back to start)
+                do
+                {
+                    // Move to next cell with wrapping
+                    if (navX != 0)
+                    {
+                        // Horizontal movement with row wrapping
+                        currentIndex += navX;
+
+                        // Wrap around horizontally and to adjacent rows
+                        if (currentIndex < 0)
+                            currentIndex = 10;  // Wrap to last valid cell
+                        else if (currentIndex > 10)
+                            currentIndex = 0;   // Wrap to first cell
+                    }
+                    else if (navY != 0)
+                    {
+                        // Vertical movement
+                        int col = currentIndex % 4;
+                        int row = currentIndex / 4;
+
+                        row += navY;
+
+                        // Wrap around vertically
+                        if (row < 0)
+                            row = 2;
+                        else if (row > 2)
+                            row = 0;
+
+                        currentIndex = row * 4 + col;
+
+                        // Handle empty cell (index 11) - move to valid cell
+                        if (currentIndex > 10)
+                        {
+                            if (navY > 0)
+                                currentIndex = col;  // Wrap to top
+                            else
+                                currentIndex = 10;   // Go to Fan instead
+                        }
+                    }
+
+                    // If this cell is available, use it
+                    if (!isObstacleSelectedByOther (currentIndex, i))
+                    {
+                        selectionCursorIndex[i] = currentIndex;
+                        break;
+                    }
+
+                    // Safety: if we've looped all the way around, stop
+                    if (currentIndex == startIndex)
+                        break;
+
+                } while (true);
+            }
+
+            // Confirm selection
+            if (players[i]->getConfirmInput())
+            {
+                int idx = selectionCursorIndex[i];
+                if (!isObstacleSelectedByOther (idx, i))
+                {
+                    hasSelected[i] = true;
+                    selectedObstacleIndex[i] = idx;
+                }
+            }
+        }
+        else
+        {
+            // AI player - simulated browsing
+            aiSelectionMoveTimer[i] -= dt;
+            aiSelectionConfirmTimer[i] -= dt;
+
+            // Occasionally move cursor
+            if (aiSelectionMoveTimer[i] <= 0)
+            {
+                aiSelectionMoveTimer[i] = config.aiSelectionMoveInterval;
+
+                // Random move direction
+                int dir = randomInt (4);  // 0=left, 1=right, 2=up, 3=down
+                int col = selectionCursorIndex[i] % 4;
+                int row = selectionCursorIndex[i] / 4;
+
+                switch (dir)
+                {
+                    case 0: col = std::max (0, col - 1); break;
+                    case 1: col = std::min (3, col + 1); break;
+                    case 2: row = std::max (0, row - 1); break;
+                    case 3: row = std::min (2, row + 1); break;
+                }
+
+                int newIndex = row * 4 + col;
+                if (newIndex > 10)
+                    newIndex = 10;
+
+                if (!isObstacleSelectedByOther (newIndex, i))
+                    selectionCursorIndex[i] = newIndex;
+            }
+
+            // Confirm after random delay
+            if (aiSelectionConfirmTimer[i] <= 0)
+            {
+                int idx = selectionCursorIndex[i];
+                if (!isObstacleSelectedByOther (idx, i))
+                {
+                    hasSelected[i] = true;
+                    selectedObstacleIndex[i] = idx;
+                }
+                else
+                {
+                    // Find available and select immediately
+                    idx = findAvailableObstacle (idx, i);
+                    hasSelected[i] = true;
+                    selectedObstacleIndex[i] = idx;
+                }
+            }
+        }
+    }
+
+    // Check if selection phase is done
+    bool allSelected = true;
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        if (!hasSelected[i])
+            allSelected = false;
+    }
+
+    if (allSelected || selectionTimer <= 0)
+    {
+        // Auto-confirm anyone who hasn't selected
+        for (int i = 0; i < MAX_PLAYERS; ++i)
+        {
+            if (!hasSelected[i])
+            {
+                int idx = selectionCursorIndex[i];
+                if (isObstacleSelectedByOther (idx, i))
+                    idx = findAvailableObstacle (idx, i);
+
+                hasSelected[i] = true;
+                selectedObstacleIndex[i] = idx;
+            }
+        }
+
+        startPlacement();
+    }
+}
+
+void Game::renderSelection()
+{
+    float w, h;
+    getWindowSize (w, h);
+
+    // Draw timer
+    int seconds = (int) std::ceil (selectionTimer);
+    std::string timerText = "SELECT YOUR OBSTACLE: " + std::to_string (seconds);
+    renderer->drawTextCentered (timerText, { w / 2.0f, 40.0f }, 3.0f, config.colorPlacementTimer);
+
+    // Grid layout: 4 columns x 3 rows
+    const int cols = 4;
+    const int rows = 3;
+    const float cellWidth = 150.0f;
+    const float cellHeight = 100.0f;
+    const float cellSpacing = 10.0f;
+
+    float gridWidth = cols * cellWidth + (cols - 1) * cellSpacing;
+    float gridHeight = rows * cellHeight + (rows - 1) * cellSpacing;
+    float gridStartX = (w - gridWidth) / 2.0f;
+    float gridStartY = (h - gridHeight) / 2.0f - 20.0f;
+
+    // Draw grid cells
+    for (int row = 0; row < rows; ++row)
+    {
+        for (int col = 0; col < cols; ++col)
+        {
+            int idx = row * cols + col;
+            if (idx > 10)
+                continue;  // Skip empty cell
+
+            float cellX = gridStartX + col * (cellWidth + cellSpacing);
+            float cellY = gridStartY + row * (cellHeight + cellSpacing);
+
+            // Determine cell state
+            bool isTaken = false;
+            int takenByPlayer = -1;
+            for (int p = 0; p < MAX_PLAYERS; ++p)
+            {
+                if (hasSelected[p] && selectedObstacleIndex[p] == idx)
+                {
+                    isTaken = true;
+                    takenByPlayer = p;
+                    break;
+                }
+            }
+
+            // Draw cell background
+            Color cellColor = isTaken ? config.colorSelectionTaken : config.colorSelectionCell;
+            renderer->drawFilledRect ({ cellX, cellY }, cellWidth, cellHeight, cellColor);
+
+            // Draw obstacle preview (clipped to cell)
+            Vec2 previewPos = { cellX + cellWidth / 2.0f, cellY + cellHeight / 2.0f - 10.0f };
+            ObstacleType obstacleType = indexToObstacleType (idx);
+
+            // Create temporary obstacle for drawing with clipping
+            BeginScissorMode ((int) cellX, (int) cellY, (int) cellWidth, (int) cellHeight);
+            auto preview = createObstacle (obstacleType, previewPos, 0.0f, -1);
+            preview->draw (*renderer);
+            EndScissorMode();
+
+            // Draw obstacle name
+            std::string name = obstacleTypeName (obstacleType);
+            renderer->drawTextCentered (name, { cellX + cellWidth / 2.0f, cellY + cellHeight - 15.0f },
+                                       1.5f, config.colorSelectionText);
+
+            // If taken, show which player
+            if (isTaken && takenByPlayer >= 0)
+            {
+                Color playerColor;
+                switch (takenByPlayer)
+                {
+                    case 0: playerColor = config.colorTankRed; break;
+                    case 1: playerColor = config.colorTankBlue; break;
+                    case 2: playerColor = config.colorTankGreen; break;
+                    default: playerColor = config.colorTankYellow; break;
+                }
+                std::string playerLabel = "P" + std::to_string (takenByPlayer + 1);
+                renderer->drawTextCentered (playerLabel, { cellX + cellWidth / 2.0f, cellY + 15.0f },
+                                           2.0f, playerColor);
+            }
+
+            // Draw player cursor outlines (for both selecting and selected players)
+            for (int p = 0; p < MAX_PLAYERS; ++p)
+            {
+                // Show outline if player is hovering here OR has selected this cell
+                bool showOutline = false;
+                if (!hasSelected[p] && selectionCursorIndex[p] == idx)
+                    showOutline = true;
+                if (hasSelected[p] && selectedObstacleIndex[p] == idx)
+                    showOutline = true;
+
+                if (showOutline)
+                {
+                    Color cursorColor;
+                    switch (p)
+                    {
+                        case 0: cursorColor = config.colorTankRed; break;
+                        case 1: cursorColor = config.colorTankBlue; break;
+                        case 2: cursorColor = config.colorTankGreen; break;
+                        default: cursorColor = config.colorTankYellow; break;
+                    }
+
+                    // Draw thick outline (multiple rectangles for thickness)
+                    float thickness = 6.0f;
+                    for (float t = 0; t < thickness; t += 1.0f)
+                    {
+                        renderer->drawRect ({ cellX - thickness + t, cellY - thickness + t },
+                                           cellWidth + (thickness - t) * 2, cellHeight + (thickness - t) * 2, cursorColor);
+                    }
+                }
+            }
+        }
+    }
+
+    // Draw player status at bottom
+    float slotY = h - 60.0f;
+    float slotSpacing = 200.0f;
+    float startX = w / 2.0f - 1.5f * slotSpacing;
+
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        Vec2 pos = { startX + i * slotSpacing, slotY };
+        Color color;
+        switch (i)
+        {
+            case 0: color = config.colorTankRed; break;
+            case 1: color = config.colorTankBlue; break;
+            case 2: color = config.colorTankGreen; break;
+            default: color = config.colorTankYellow; break;
+        }
+
+        std::string statusText;
+        if (hasSelected[i])
+            statusText = obstacleTypeName (indexToObstacleType (selectedObstacleIndex[i]));
+        else
+            statusText = "SELECTING...";
+
+        renderer->drawTextCentered ("P" + std::to_string (i + 1), { pos.x, pos.y - 15 }, 2.0f, color);
+        renderer->drawTextCentered (statusText, { pos.x, pos.y + 10 }, 1.5f, hasSelected[i] ? color : config.colorGreySubtle);
+    }
+
+    // Draw instructions
+    renderer->drawTextCentered ("ARROWS TO MOVE - ENTER TO SELECT", { w / 2.0f, h - 20.0f }, 1.5f, config.colorInstruction);
+}
+
+void Game::startPlacement()
+{
     // Shuffle starting positions
     for (int i = MAX_TANKS - 1; i > 0; --i)
     {
@@ -180,8 +581,11 @@ void Game::startPlacement()
             obstacles.end());
     }
 
-    // Assign random obstacles for placement
-    assignRandomObstacles();
+    // Use selected obstacles from selection phase
+    for (int i = 0; i < MAX_PLAYERS; ++i)
+    {
+        assignedObstacles[i] = indexToObstacleType (selectedObstacleIndex[i]);
+    }
 
     // Initialize placement
     float w, h;
@@ -195,34 +599,6 @@ void Game::startPlacement()
     placementTimer = config.placementTime;
 
     state = GameState::Placement;
-}
-
-void Game::assignRandomObstacles()
-{
-    for (int i = 0; i < MAX_PLAYERS; ++i)
-    {
-        assignedObstacles[i] = getRandomObstacleType();
-    }
-}
-
-ObstacleType Game::getRandomObstacleType()
-{
-    int r = randomInt (11);
-    switch (r)
-    {
-        case 0: return ObstacleType::SolidWall;
-        case 1: return ObstacleType::BreakableWall;
-        case 2: return ObstacleType::ReflectiveWall;
-        case 3: return ObstacleType::Mine;
-        case 4: return ObstacleType::AutoTurret;
-        case 5: return ObstacleType::Pit;
-        case 6: return ObstacleType::Portal;
-        case 7: return ObstacleType::Flag;
-        case 8: return ObstacleType::Powerup;
-        case 9: return ObstacleType::Electromagnet;
-        case 10: return ObstacleType::Fan;
-        default: return ObstacleType::SolidWall;
-    }
 }
 
 void Game::updatePlacement (float dt)
@@ -319,7 +695,51 @@ void Game::updatePlacement (float dt)
             allPlaced = false;
     }
 
-    if (allPlaced || placementTimer <= 0)
+    // Auto-place for players who haven't placed when timer expires
+    if (placementTimer <= 0 && !allPlaced)
+    {
+        std::vector<Tank*> tankPtrs;
+        for (auto& tank : tanks)
+            if (tank) tankPtrs.push_back (tank.get());
+
+        for (int i = 0; i < MAX_PLAYERS; ++i)
+        {
+            if (hasPlaced[i])
+                continue;
+
+            // Try current position first
+            auto temp = createObstacle (assignedObstacles[i], placementPositions[i], placementAngles[i], i);
+            if (temp->isValidPlacement (obstacles, tankPtrs, w, h))
+            {
+                obstacles.push_back (createObstacle (assignedObstacles[i], placementPositions[i], placementAngles[i], i));
+                hasPlaced[i] = true;
+            }
+            else
+            {
+                // Try random valid positions
+                for (int attempt = 0; attempt < 20; ++attempt)
+                {
+                    Vec2 pos = aiControllers[i]->getPlacementPosition (w, h);
+                    float angle = aiControllers[i]->getPlacementAngle();
+
+                    auto randTemp = createObstacle (assignedObstacles[i], pos, angle, i);
+                    if (randTemp->isValidPlacement (obstacles, tankPtrs, w, h))
+                    {
+                        obstacles.push_back (createObstacle (assignedObstacles[i], pos, angle, i));
+                        hasPlaced[i] = true;
+                        break;
+                    }
+                }
+
+                // If still couldn't place, mark as placed anyway (no obstacle placed)
+                if (!hasPlaced[i])
+                    hasPlaced[i] = true;
+            }
+        }
+        allPlaced = true;
+    }
+
+    if (allPlaced)
     {
         startRound();
     }
@@ -456,27 +876,16 @@ void Game::updatePlaying (float dt)
             }
         }
 
-        // Handle powerup collection (consumeCollection returns true only once)
+        // Handle health pack collection (consumeCollection returns true only once)
         if (obstacle->getType() == ObstacleType::Powerup)
         {
-            auto* powerup = static_cast<Powerup*> (obstacle.get());
-            if (powerup->consumeCollection())
+            auto* healthPack = static_cast<Powerup*> (obstacle.get());
+            if (healthPack->consumeCollection())
             {
-                int collector = powerup->getCollectedBy();
+                int collector = healthPack->getCollectedBy();
                 if (collector >= 0 && collector < MAX_TANKS && tanks[collector])
                 {
-                    switch (powerup->getPowerupType())
-                    {
-                        case PowerupType::Speed:
-                            tanks[collector]->applySpeedPowerup (config.powerupDuration);
-                            break;
-                        case PowerupType::Damage:
-                            tanks[collector]->applyDamagePowerup (config.powerupDuration);
-                            break;
-                        case PowerupType::Armor:
-                            tanks[collector]->applyArmorPowerup (config.powerupDuration);
-                            break;
-                    }
+                    tanks[collector]->heal (0.5f);  // Restore 50% health
                 }
             }
         }
@@ -530,6 +939,26 @@ void Game::updateShells (float dt)
     {
         if (!shell.isAlive())
             continue;
+
+        // Apply forces from fans and electromagnets
+        for (auto& obstacle : obstacles)
+        {
+            if (!obstacle->isAlive())
+                continue;
+
+            if (obstacle->getType() == ObstacleType::Fan)
+            {
+                auto* fan = static_cast<Fan*> (obstacle.get());
+                Vec2 force = fan->calculateShellPushForce (shell.getPosition());
+                shell.applyForce (force, dt);
+            }
+            else if (obstacle->getType() == ObstacleType::Electromagnet)
+            {
+                auto* magnet = static_cast<Electromagnet*> (obstacle.get());
+                Vec2 force = magnet->calculateShellPullForce (shell.getPosition());
+                shell.applyForce (force, dt);
+            }
+        }
 
         shell.update (dt);
 
@@ -897,7 +1326,7 @@ void Game::updateRoundOver (float dt)
         }
         else
         {
-            startPlacement();
+            startSelection();
         }
     }
 }
@@ -945,6 +1374,9 @@ void Game::render()
     {
         case GameState::Title:
             renderTitle();
+            break;
+        case GameState::Selection:
+            renderSelection();
             break;
         case GameState::Placement:
             renderPlacement();

@@ -35,24 +35,36 @@ public:
     // Calculate push force on a tank
     Vec2 calculatePushForce (const Tank& tank) const
     {
+        return calculatePushForceAtPosition (tank.getPosition(), config.fanForce);
+    }
+
+    // Calculate push force on a shell (stronger effect on lighter projectiles)
+    Vec2 calculateShellPushForce (Vec2 shellPos) const
+    {
+        return calculatePushForceAtPosition (shellPos, config.fanForce * 3.0f);
+    }
+
+private:
+    Vec2 calculatePushForceAtPosition (Vec2 targetPos, float force) const
+    {
         if (!alive)
             return { 0, 0 };
 
         Vec2 fanDir = Vec2::fromAngle (angle);
-        Vec2 toTank = tank.getPosition() - position;
-        float dist = toTank.length();
+        Vec2 toTarget = targetPos - position;
+        float dist = toTarget.length();
 
         if (dist < config.fanRadius || dist > config.fanRange)
             return { 0, 0 };
 
-        // Check if tank is within the fan's cone
-        float dotProduct = toTank.normalized().dot (fanDir);
+        // Check if target is within the fan's cone
+        float dotProduct = toTarget.normalized().dot (fanDir);
         if (dotProduct < 0.3f)  // ~72 degree cone
             return { 0, 0 };
 
         // Check lateral distance from fan centerline
-        Vec2 projected = fanDir * toTank.dot (fanDir);
-        Vec2 perpendicular = toTank - projected;
+        Vec2 projected = fanDir * toTarget.dot (fanDir);
+        Vec2 perpendicular = toTarget - projected;
         float lateralDist = perpendicular.length();
 
         // Width of cone at this distance
@@ -62,8 +74,10 @@ public:
 
         // Force falls off with distance
         float strength = 1.0f - (dist / config.fanRange);
-        return fanDir * config.fanForce * strength;
+        return fanDir * force * strength;
     }
+
+public:
 
     ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {

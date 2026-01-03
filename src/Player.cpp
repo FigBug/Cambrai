@@ -38,6 +38,9 @@ void Player::update()
         fireInput = false;
         placeInput = false;
         rotateInput = false;
+        navX = 0;
+        navY = 0;
+        confirmInput = false;
         return;
     }
 
@@ -70,6 +73,20 @@ void Player::update()
     // Bumpers rotate obstacle during placement
     rotateInput = IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_1) ||
                   IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_TRIGGER_1);
+
+    // D-pad navigation for selection grid
+    navX = 0;
+    navY = 0;
+    if (IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_LEFT_FACE_LEFT))
+        navX = -1;
+    if (IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_LEFT_FACE_RIGHT))
+        navX = 1;
+    if (IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_LEFT_FACE_UP))
+        navY = -1;
+    if (IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_LEFT_FACE_DOWN))
+        navY = 1;
+
+    confirmInput = IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
 
 void Player::updateKeyboardMouse()
@@ -101,8 +118,21 @@ void Player::updateKeyboardMouse()
     placeInput = IsMouseButtonPressed (MOUSE_BUTTON_LEFT) || IsKeyPressed (KEY_ENTER);
 
     // Arrow keys, Q/E to rotate obstacle during placement
-    rotateInput = IsKeyDown (KEY_Q) || IsKeyDown (KEY_E) ||
-                  IsKeyDown (KEY_LEFT) || IsKeyDown (KEY_RIGHT);
+    rotateInput = IsKeyDown (KEY_Q) || IsKeyDown (KEY_E);
+
+    // Arrow keys / WASD for grid navigation in selection phase
+    navX = 0;
+    navY = 0;
+    if (IsKeyPressed (KEY_LEFT) || IsKeyPressed (KEY_A))
+        navX = -1;
+    if (IsKeyPressed (KEY_RIGHT) || IsKeyPressed (KEY_D))
+        navX = 1;
+    if (IsKeyPressed (KEY_UP) || IsKeyPressed (KEY_W))
+        navY = -1;
+    if (IsKeyPressed (KEY_DOWN) || IsKeyPressed (KEY_S))
+        navY = 1;
+
+    confirmInput = IsKeyPressed (KEY_ENTER) || IsKeyPressed (KEY_SPACE);
 }
 
 float Player::applyDeadzone (float value) const

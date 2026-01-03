@@ -52,6 +52,7 @@ public:
     bool isFullyDestroyed() const   { return destroying && destroyTimer >= config.tankDestroyDuration; }
     float getDestroyProgress() const { return destroying ? destroyTimer / config.tankDestroyDuration : 0.0f; }
     void takeDamage (float damage, int attackerIndex = -1);
+    void heal (float percent);      // Heal by percentage of max health (0.0 to 1.0)
     int getKillerIndex() const      { return killerIndex; }
 
     // Pit trap
