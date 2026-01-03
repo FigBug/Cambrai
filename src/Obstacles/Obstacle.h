@@ -22,16 +22,9 @@ enum class ObstacleType
     Pit,
     Portal,
     Flag,
-    Powerup,
+    HealthPack,
     Electromagnet,
     Fan
-};
-
-enum class PowerupType
-{
-    Speed,          // +50% speed
-    Damage,         // +50% damage dealt
-    Armor           // -50% damage taken
 };
 
 // Shell collision result

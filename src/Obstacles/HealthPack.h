@@ -4,15 +4,15 @@
 #include "../Renderer.h"
 #include "../Tank.h"
 
-class Powerup : public Obstacle
+class HealthPack : public Obstacle
 {
 public:
-    Powerup (Vec2 position, float angle, int ownerIndex)
+    HealthPack (Vec2 position, float angle, int ownerIndex)
         : Obstacle (position, angle, ownerIndex)
     {
     }
 
-    ObstacleType getType() const override { return ObstacleType::Powerup; }
+    ObstacleType getType() const override { return ObstacleType::HealthPack; }
     float getCollisionRadius() const override { return config.powerupRadius; }
 
     // Track who collected the health pack (-1 if not collected)
