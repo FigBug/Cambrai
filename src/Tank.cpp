@@ -58,12 +58,22 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     if (fireInput && isReadyToFire())
         fireShell();
 
-    // If trapped in pit, can't move or rotate
+    // If trapped in pit, can't move or rotate but can still aim
     if (isTrapped())
     {
         velocity = { 0.0f, 0.0f };
         throttle = 0.0f;
         externalForce = { 0, 0 };  // Clear accumulated forces so tank doesn't shoot out when released
+
+        // Update crosshair offset based on aim stick
+        if (aimInput.lengthSquared() > 0.01f)
+            crosshairOffset += aimInput * config.crosshairSpeed * dt;
+
+        // Clamp crosshair to max distance
+        float crosshairDist = crosshairOffset.length();
+        if (crosshairDist > config.crosshairMaxDistance)
+            crosshairOffset = crosshairOffset.normalized() * config.crosshairMaxDistance;
+
         updateTurret (dt);
         updateSmoke (dt);
         return;

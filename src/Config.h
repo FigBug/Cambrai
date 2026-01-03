@@ -83,7 +83,7 @@ public:
     float portalRadius                = 20.0f;      // Portal radius
     float portalCooldown              = 10.0f;      // Cooldown before tank can use portal/pit again
     float flagRadius                  = 12.0f;      // Flag pickup radius
-    int flagPoints                    = 5;          // Points awarded for capturing flag
+    int flagPoints                    = 2;          // Points awarded for capturing flag
     float healthPackRadius            = 15.0f;      // Health pack pickup radius
     float electromagnetRadius         = 30.0f;      // Electromagnet size
     float electromagnetRange          = 800.0f;     // Pull range
@@ -149,11 +149,11 @@ public:
     // -------------------------------------------------------------------------
     // Game Flow
     // -------------------------------------------------------------------------
-    int roundsToWin                   = 10;         // Best of 10 rounds
+    int roundsToWin                   = 5;          // Best of 5 rounds
     float roundStartDelay             = 0.5f;       // Delay before round starts
     float placementTime               = 10.0f;      // Seconds for placement phase
     float roundOverDelay              = 3.0f;       // Delay before next round
-    float gameOverDelay               = 5.0f;       // Delay before reset after 10 rounds
+    float gameOverDelay               = 5.0f;       // Delay before reset after all rounds
     int pointsForSurviving            = 1;
     int pointsForKill                 = 1;
     float stalemateTimeout            = 60.0f;      // Round ends in draw if no damage for this long

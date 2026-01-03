@@ -26,14 +26,8 @@ public:
         armTimer += dt;
     }
 
-    ShellHitResult checkShellCollision (const Shell& shell, Vec2& collisionPoint, Vec2& normal) const override
+    ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {
-        if (!alive)
-            return ShellHitResult::Miss;
-
-        if (checkCircleCollision (shell, config.mineRadius, collisionPoint, normal))
-            return ShellHitResult::Destroyed;
-
         return ShellHitResult::Miss;
     }
 

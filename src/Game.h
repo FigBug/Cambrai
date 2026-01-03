@@ -19,7 +19,7 @@ enum class GameState
     Placement,    // Players place their obstacles
     Playing,
     RoundOver,
-    GameOver      // After 10 rounds
+    GameOver      // After all rounds
 };
 
 struct Explosion
