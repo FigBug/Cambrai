@@ -2,6 +2,7 @@
 
 #include "Obstacle.h"
 #include "../Renderer.h"
+#include "../Random.h"
 
 class Portal : public Obstacle
 {
@@ -49,6 +50,29 @@ public:
             return true;
         }
         return false;
+    }
+
+    bool handleTankCollision (Tank& tank, const std::vector<std::unique_ptr<Obstacle>>& allObstacles) override
+    {
+        if (!tank.canUseTeleporter())
+            return false;
+
+        // Find all other portals
+        std::vector<Obstacle*> otherPortals;
+        for (auto& other : allObstacles)
+        {
+            if (other.get() != this && other->getType() == ObstacleType::Portal && other->isAlive())
+                otherPortals.push_back (other.get());
+        }
+
+        // Teleport to random portal if there are others
+        if (!otherPortals.empty())
+        {
+            Obstacle* destPortal = otherPortals[randomInt ((int) otherPortals.size())];
+            tank.teleportTo (destPortal->getPosition());
+        }
+
+        return false;  // No physics push
     }
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override

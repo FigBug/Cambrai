@@ -1,8 +1,4 @@
 #include "Game.h"
-#include "Obstacles/Electromagnet.h"
-#include "Obstacles/Fan.h"
-#include "Obstacles/Flag.h"
-#include "Obstacles/HealthPack.h"
 #include "Random.h"
 #include <raylib.h>
 #include <algorithm>
@@ -834,60 +830,26 @@ void Game::updatePlaying (float dt)
             shells.push_back (std::move (shell));
         pendingShells.clear();
 
-        // Apply electromagnet forces
-        if (obstacle->getType() == ObstacleType::Electromagnet && obstacle->isAlive())
+        // Apply obstacle forces to tanks (electromagnet, fan)
+        if (obstacle->isAlive())
         {
-            auto* magnet = static_cast<Electromagnet*> (obstacle.get());
             for (auto& tank : tanks)
             {
                 if (tank && tank->isAlive())
                 {
-                    Vec2 pullForce = magnet->calculatePullForce (*tank);
-                    tank->applyExternalForce (pullForce);
+                    Vec2 force = obstacle->getTankForce (*tank);
+                    tank->applyExternalForce (force);
                 }
             }
         }
 
-        // Apply fan forces
-        if (obstacle->getType() == ObstacleType::Fan && obstacle->isAlive())
+        // Handle collection effects (flag capture, health pack pickup)
+        auto effect = obstacle->consumeCollectionEffect();
+        if (effect.playerIndex >= 0 && effect.playerIndex < MAX_PLAYERS)
         {
-            auto* fan = static_cast<Fan*> (obstacle.get());
-            for (auto& tank : tanks)
-            {
-                if (tank && tank->isAlive())
-                {
-                    Vec2 pushForce = fan->calculatePushForce (*tank);
-                    tank->applyExternalForce (pushForce);
-                }
-            }
-        }
-
-        // Handle flag capture (consumeCapture returns true only once)
-        if (obstacle->getType() == ObstacleType::Flag)
-        {
-            auto* flag = static_cast<Flag*> (obstacle.get());
-            if (flag->consumeCapture())
-            {
-                int captor = flag->getCapturedBy();
-                if (captor >= 0 && captor < MAX_PLAYERS)
-                {
-                    scores[captor] += config.flagPoints;
-                }
-            }
-        }
-
-        // Handle health pack collection (consumeCollection returns true only once)
-        if (obstacle->getType() == ObstacleType::HealthPack)
-        {
-            auto* healthPack = static_cast<HealthPack*> (obstacle.get());
-            if (healthPack->consumeCollection())
-            {
-                int collector = healthPack->getCollectedBy();
-                if (collector >= 0 && collector < MAX_TANKS && tanks[collector])
-                {
-                    tanks[collector]->heal (0.5f);  // Restore 50% health
-                }
-            }
+            scores[effect.playerIndex] += effect.scoreToAdd;
+            if (effect.healthPercent > 0 && tanks[effect.playerIndex])
+                tanks[effect.playerIndex]->heal (effect.healthPercent);
         }
     }
 
@@ -940,24 +902,14 @@ void Game::updateShells (float dt)
         if (!shell.isAlive())
             continue;
 
-        // Apply forces from fans and electromagnets
+        // Apply forces from obstacles (fans, electromagnets)
         for (auto& obstacle : obstacles)
         {
             if (!obstacle->isAlive())
                 continue;
 
-            if (obstacle->getType() == ObstacleType::Fan)
-            {
-                auto* fan = static_cast<Fan*> (obstacle.get());
-                Vec2 force = fan->calculateShellPushForce (shell.getPosition());
-                shell.applyForce (force, dt);
-            }
-            else if (obstacle->getType() == ObstacleType::Electromagnet)
-            {
-                auto* magnet = static_cast<Electromagnet*> (obstacle.get());
-                Vec2 force = magnet->calculateShellPullForce (shell.getPosition());
-                shell.applyForce (force, dt);
-            }
+            Vec2 force = obstacle->getShellForce (shell.getPosition());
+            shell.applyForce (force, dt);
         }
 
         shell.update (dt);
@@ -1005,15 +957,11 @@ void Game::checkCollisions()
                 }
                 else  // Destroyed
                 {
-                    // Damage destructible obstacles
-                    if (obstacle->getType() == ObstacleType::BreakableWall)
-                    {
-                        obstacle->takeDamage (config.shellDamage);
-                    }
-                    else if (obstacle->getType() == ObstacleType::AutoTurret)
-                    {
-                        obstacle->takeDamage (shell.getDamage());
+                    // Damage destructible obstacles (breakable walls, turrets)
+                    obstacle->takeDamage (shell.getDamage());
 
+                    if (obstacle->createsExplosionOnHit())
+                    {
                         Explosion explosion;
                         explosion.position = collisionPoint;
                         explosion.duration = config.explosionDuration;
@@ -1139,40 +1087,18 @@ void Game::checkCollisions()
                         explosions.push_back (destroyExplosion);
                     }
                 }
-                else if (obstacle->getType() == ObstacleType::Pit)
-                {
-                    // Tank falls into pit - trapped for duration (if not on cooldown)
-                    if (tank->canUseTeleporter())
-                        tank->trapInPit (config.pitTrapDuration);
-                }
-                else if (obstacle->getType() == ObstacleType::Portal)
-                {
-                    // Teleport to another random portal (if not on cooldown)
-                    if (tank->canUseTeleporter())
-                    {
-                        // Find all other portals
-                        std::vector<Obstacle*> otherPortals;
-                        for (auto& other : obstacles)
-                        {
-                            if (other.get() != obstacle.get() && other->getType() == ObstacleType::Portal && other->isAlive())
-                                otherPortals.push_back (other.get());
-                        }
-
-                        // Teleport to random portal if there are others
-                        if (!otherPortals.empty())
-                        {
-                            Obstacle* destPortal = otherPortals[randomInt ((int) otherPortals.size())];
-                            tank->teleportTo (destPortal->getPosition());
-                        }
-                    }
-                }
                 else
                 {
-                    // Push tank away from obstacle
-                    tank->applyCollision (pushDir, pushDist, { 0, 0 });
+                    // Let obstacle handle collision (pit traps, portal teleports, etc.)
+                    bool applyPush = obstacle->handleTankCollision (*tank, obstacles);
 
-                    if (audio)
-                        audio->playCollision (tank->getPosition().x, arenaWidth);
+                    if (applyPush)
+                    {
+                        tank->applyCollision (pushDir, pushDist, { 0, 0 });
+
+                        if (audio)
+                            audio->playCollision (tank->getPosition().x, arenaWidth);
+                    }
                 }
             }
         }

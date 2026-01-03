@@ -15,19 +15,15 @@ public:
     ObstacleType getType() const override { return ObstacleType::HealthPack; }
     float getCollisionRadius() const override { return config.healthPackRadius; }
 
-    // Track who collected the health pack (-1 if not collected)
-    int getCollectedBy() const { return collectedBy; }
-    bool isCollected() const { return collectedBy >= 0; }
-
-    // Returns true only once when health pack is first collected (consumes the collection event)
-    bool consumeCollection()
+    // Override base class collection effect
+    CollectionEffect consumeCollectionEffect() override
     {
         if (collectedBy >= 0 && !effectApplied)
         {
             effectApplied = true;
-            return true;
+            return { collectedBy, 0, 0.5f };  // 50% health restore
         }
-        return false;
+        return {};
     }
 
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override

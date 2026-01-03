@@ -15,19 +15,15 @@ public:
     ObstacleType getType() const override { return ObstacleType::Flag; }
     float getCollisionRadius() const override { return config.flagRadius; }
 
-    // Track who captured the flag (-1 if not captured)
-    int getCapturedBy() const { return capturedBy; }
-    bool isCaptured() const { return capturedBy >= 0; }
-
-    // Returns true only once when flag is first captured (consumes the capture event)
-    bool consumeCapture()
+    // Override base class collection effect
+    CollectionEffect consumeCollectionEffect() override
     {
         if (capturedBy >= 0 && !pointsAwarded)
         {
             pointsAwarded = true;
-            return true;
+            return { capturedBy, config.flagPoints, 0 };
         }
-        return false;
+        return {};
     }
 
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override

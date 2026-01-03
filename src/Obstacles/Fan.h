@@ -32,14 +32,13 @@ public:
             bladeAngle -= 2.0f * pi;
     }
 
-    // Calculate push force on a tank
-    Vec2 calculatePushForce (const Tank& tank) const
+    // Override base class force methods
+    Vec2 getTankForce (const Tank& tank) const override
     {
         return calculatePushForceAtPosition (tank.getPosition(), config.fanForce);
     }
 
-    // Calculate push force on a shell (stronger effect on lighter projectiles)
-    Vec2 calculateShellPushForce (Vec2 shellPos) const
+    Vec2 getShellForce (Vec2 shellPos) const override
     {
         return calculatePushForceAtPosition (shellPos, config.fanForce * 3.0f);
     }

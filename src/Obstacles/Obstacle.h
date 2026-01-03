@@ -46,6 +46,26 @@ public:
     virtual void update (float dt, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) {}
 
     virtual ObstacleType getType() const = 0;
+
+    // Force application - override in Electromagnet, Fan
+    virtual Vec2 getTankForce (const Tank& tank) const { return { 0, 0 }; }
+    virtual Vec2 getShellForce (Vec2 shellPos) const { return { 0, 0 }; }
+
+    // Collection effects (flag capture, health pack pickup)
+    struct CollectionEffect
+    {
+        int playerIndex = -1;
+        int scoreToAdd = 0;
+        float healthPercent = 0;  // 0.5 = heal 50%
+    };
+    virtual CollectionEffect consumeCollectionEffect() { return {}; }
+
+    // Tank collision handling - called when checkTankCollision returns true
+    // Return true to apply normal physics push, false to skip it
+    virtual bool handleTankCollision (Tank& tank, const std::vector<std::unique_ptr<Obstacle>>& allObstacles) { return true; }
+
+    // Whether this obstacle creates an explosion when hit by shell (AutoTurret)
+    virtual bool createsExplosionOnHit() const { return false; }
     virtual float getCollisionRadius() const { return 20.0f; }
     virtual bool isRectangular() const { return false; }
 

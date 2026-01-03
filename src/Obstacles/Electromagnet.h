@@ -46,14 +46,13 @@ public:
         }
     }
 
-    // Calculate pull force on a tank (to be applied by Game)
-    Vec2 calculatePullForce (const Tank& tank) const
+    // Override base class force methods
+    Vec2 getTankForce (const Tank& tank) const override
     {
         return calculatePullForceAtPosition (tank.getPosition(), config.electromagnetForce);
     }
 
-    // Calculate pull force on a shell (stronger effect on lighter projectiles)
-    Vec2 calculateShellPullForce (Vec2 shellPos) const
+    Vec2 getShellForce (Vec2 shellPos) const override
     {
         return calculatePullForceAtPosition (shellPos, config.electromagnetForce * 5.0f);
     }

@@ -17,6 +17,7 @@ public:
     ObstacleType getType() const override { return ObstacleType::AutoTurret; }
     float getCollisionRadius() const override { return 15.0f; }
     float getMaxHealth() const override { return config.turretHealth; }
+    bool createsExplosionOnHit() const override { return true; }
 
     float getTurretAngle() const { return turretAngle; }
     float getReloadProgress() const { return reloadTimer / config.turretFireInterval; }

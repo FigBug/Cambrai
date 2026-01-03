@@ -44,6 +44,13 @@ public:
         return false;
     }
 
+    bool handleTankCollision (Tank& tank, const std::vector<std::unique_ptr<Obstacle>>&) override
+    {
+        if (tank.canUseTeleporter())
+            tank.trapInPit (config.pitTrapDuration);
+        return false;  // No physics push
+    }
+
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override
     {
         return isValidCirclePlacement (config.pitRadius, obstacles, tanks, arenaWidth, arenaHeight);
