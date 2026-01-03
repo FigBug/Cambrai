@@ -84,11 +84,7 @@ public:
     float portalCooldown              = 10.0f;      // Cooldown before tank can use portal/pit again
     float flagRadius                  = 12.0f;      // Flag pickup radius
     int flagPoints                    = 5;          // Points awarded for capturing flag
-    float powerupRadius               = 15.0f;      // Powerup pickup radius
-    float powerupDuration             = 30.0f;      // How long powerup lasts (seconds)
-    float powerupSpeedBonus           = 0.5f;       // +50% speed
-    float powerupDamageBonus          = 0.5f;       // +50% damage
-    float powerupArmorBonus           = 0.5f;       // -50% damage taken
+    float healthPackRadius            = 15.0f;      // Health pack pickup radius
     float electromagnetRadius         = 30.0f;      // Electromagnet size
     float electromagnetRange          = 800.0f;     // Pull range
     float electromagnetForce          = 100.0f;     // Pull force
@@ -199,9 +195,6 @@ public:
     Color colorPortal                 = { 100, 50, 200, 255 };
     Color colorFlag                   = { 255, 215, 0, 255 };     // Gold
     Color colorFlagPole               = { 139, 90, 43, 255 };     // Brown
-    Color colorPowerupSpeed           = { 100, 200, 255, 255 };   // Light blue
-    Color colorPowerupDamage          = { 255, 100, 100, 255 };   // Red
-    Color colorPowerupArmor           = { 100, 255, 100, 255 };   // Green
     Color colorElectromagnetOn        = { 100, 150, 255, 255 };   // Electric blue
     Color colorElectromagnetOff       = { 60, 80, 100, 255 };     // Dim blue
     Color colorFan                    = { 180, 180, 180, 255 };   // Light grey

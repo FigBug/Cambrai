@@ -2,7 +2,7 @@
 #include "Obstacles/Electromagnet.h"
 #include "Obstacles/Fan.h"
 #include "Obstacles/Flag.h"
-#include "Obstacles/Powerup.h"
+#include "Obstacles/HealthPack.h"
 #include "Random.h"
 #include <raylib.h>
 #include <algorithm>
@@ -165,7 +165,7 @@ ObstacleType Game::indexToObstacleType (int index) const
         case 5: return ObstacleType::Pit;
         case 6: return ObstacleType::Portal;
         case 7: return ObstacleType::Flag;
-        case 8: return ObstacleType::Powerup;
+        case 8: return ObstacleType::HealthPack;
         case 9: return ObstacleType::Electromagnet;
         case 10: return ObstacleType::Fan;
         default: return ObstacleType::SolidWall;
@@ -184,7 +184,7 @@ std::string Game::obstacleTypeName (ObstacleType type) const
         case ObstacleType::Pit: return "PIT";
         case ObstacleType::Portal: return "PORTAL";
         case ObstacleType::Flag: return "FLAG";
-        case ObstacleType::Powerup: return "HEALTH";
+        case ObstacleType::HealthPack: return "HEALTH";
         case ObstacleType::Electromagnet: return "MAGNET";
         case ObstacleType::Fan: return "FAN";
         default: return "UNKNOWN";
@@ -877,9 +877,9 @@ void Game::updatePlaying (float dt)
         }
 
         // Handle health pack collection (consumeCollection returns true only once)
-        if (obstacle->getType() == ObstacleType::Powerup)
+        if (obstacle->getType() == ObstacleType::HealthPack)
         {
-            auto* healthPack = static_cast<Powerup*> (obstacle.get());
+            auto* healthPack = static_cast<HealthPack*> (obstacle.get());
             if (healthPack->consumeCollection())
             {
                 int collector = healthPack->getCollectedBy();
@@ -1062,13 +1062,7 @@ void Game::checkCollisions()
             Vec2 hitPoint;
             if (renderer->checkTankHitLine (*tank, shellPrev, shellCur, hitPoint))
             {
-                // Apply damage multiplier from shooter's powerup
-                float damage = shell.getDamage();
-                int shooterIdx = shell.getOwnerIndex();
-                if (shooterIdx >= 0 && shooterIdx < MAX_TANKS && tanks[shooterIdx])
-                    damage *= tanks[shooterIdx]->getDamageMultiplier();
-
-                tank->takeDamage (damage, shell.getOwnerIndex());
+                tank->takeDamage (shell.getDamage(), shell.getOwnerIndex());
 
                 Explosion explosion;
                 explosion.position = hitPoint;
@@ -1506,7 +1500,7 @@ void Game::renderPlacement()
             case ObstacleType::Pit: typeText = "PIT"; break;
             case ObstacleType::Portal: typeText = "PORTAL"; break;
             case ObstacleType::Flag: typeText = "FLAG"; break;
-            case ObstacleType::Powerup: typeText = "POWERUP"; break;
+            case ObstacleType::HealthPack: typeText = "HEALTH PACK"; break;
             case ObstacleType::Electromagnet: typeText = "ELECTROMAGNET"; break;
             case ObstacleType::Fan: typeText = "FAN"; break;
         }

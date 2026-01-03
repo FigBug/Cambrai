@@ -45,14 +45,6 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     if (teleportCooldown > 0.0f)
         teleportCooldown -= dt;
 
-    // Update powerup timers
-    if (speedPowerupTimer > 0.0f)
-        speedPowerupTimer -= dt;
-    if (damagePowerupTimer > 0.0f)
-        damagePowerupTimer -= dt;
-    if (armorPowerupTimer > 0.0f)
-        armorPowerupTimer -= dt;
-
     // Calculate damage penalty (reduces speed and turn rate)
     float damagePercent = getDamagePercent();
     float damagePenalty = 1.0f - (damagePercent * config.tankDamagePenaltyMax);
@@ -111,8 +103,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     // Movement: Based on throttle
     Vec2 forward = Vec2::fromAngle (angle);
 
-    float speedMultiplier = getSpeedMultiplier();
-    float effectiveMaxSpeed = (throttle >= 0 ? config.tankMaxSpeed : config.tankReverseSpeed) * damagePenalty * speedMultiplier;
+    float effectiveMaxSpeed = (throttle >= 0 ? config.tankMaxSpeed : config.tankReverseSpeed) * damagePenalty;
     float targetSpeed = throttle * effectiveMaxSpeed;
 
     // Current speed along tank's forward direction
@@ -299,10 +290,7 @@ void Tank::takeDamage (float damage, int attackerIndex)
     if (destroying)
         return;
 
-    // Apply armor powerup reduction
-    float actualDamage = damage * getArmorMultiplier();
-
-    health -= actualDamage;
+    health -= damage;
     if (health <= 0)
     {
         health = 0;
@@ -489,36 +477,6 @@ void Tank::teleportTo (Vec2 newPosition)
     position = newPosition;
     velocity = { 0.0f, 0.0f };
     startTeleportCooldown (config.portalCooldown);
-}
-
-void Tank::applySpeedPowerup (float duration)
-{
-    speedPowerupTimer = duration;
-}
-
-void Tank::applyDamagePowerup (float duration)
-{
-    damagePowerupTimer = duration;
-}
-
-void Tank::applyArmorPowerup (float duration)
-{
-    armorPowerupTimer = duration;
-}
-
-float Tank::getSpeedMultiplier() const
-{
-    return hasSpeedPowerup() ? (1.0f + config.powerupSpeedBonus) : 1.0f;
-}
-
-float Tank::getDamageMultiplier() const
-{
-    return hasDamagePowerup() ? (1.0f + config.powerupDamageBonus) : 1.0f;
-}
-
-float Tank::getArmorMultiplier() const
-{
-    return hasArmorPowerup() ? (1.0f - config.powerupArmorBonus) : 1.0f;
 }
 
 void Tank::applyExternalForce (Vec2 force)

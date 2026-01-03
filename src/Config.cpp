@@ -176,11 +176,7 @@ bool Config::load()
         loadValue (s, "portalCooldown", portalCooldown);
         loadValue (s, "flagRadius", flagRadius);
         loadValue (s, "flagPoints", flagPoints);
-        loadValue (s, "powerupRadius", powerupRadius);
-        loadValue (s, "powerupDuration", powerupDuration);
-        loadValue (s, "powerupSpeedBonus", powerupSpeedBonus);
-        loadValue (s, "powerupDamageBonus", powerupDamageBonus);
-        loadValue (s, "powerupArmorBonus", powerupArmorBonus);
+        loadValue (s, "healthPackRadius", healthPackRadius);
         loadValue (s, "electromagnetRadius", electromagnetRadius);
         loadValue (s, "electromagnetRange", electromagnetRange);
         loadValue (s, "electromagnetForce", electromagnetForce);
@@ -325,11 +321,7 @@ bool Config::save() const
         { "portalCooldown", portalCooldown },
         { "flagRadius", flagRadius },
         { "flagPoints", flagPoints },
-        { "powerupRadius", powerupRadius },
-        { "powerupDuration", powerupDuration },
-        { "powerupSpeedBonus", powerupSpeedBonus },
-        { "powerupDamageBonus", powerupDamageBonus },
-        { "powerupArmorBonus", powerupArmorBonus },
+        { "healthPackRadius", healthPackRadius },
         { "electromagnetRadius", electromagnetRadius },
         { "electromagnetRange", electromagnetRange },
         { "electromagnetForce", electromagnetForce },

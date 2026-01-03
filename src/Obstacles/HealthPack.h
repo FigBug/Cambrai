@@ -13,7 +13,7 @@ public:
     }
 
     ObstacleType getType() const override { return ObstacleType::HealthPack; }
-    float getCollisionRadius() const override { return config.powerupRadius; }
+    float getCollisionRadius() const override { return config.healthPackRadius; }
 
     // Track who collected the health pack (-1 if not collected)
     int getCollectedBy() const { return collectedBy; }
@@ -47,7 +47,7 @@ public:
                 continue;
 
             float dist = (tank->getPosition() - position).length();
-            if (dist < config.powerupRadius + tank->getSize())
+            if (dist < config.healthPackRadius + tank->getSize())
             {
                 collectedBy = tank->getPlayerIndex();
                 alive = false;
@@ -70,7 +70,7 @@ public:
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override
     {
-        return isValidCirclePlacement (config.powerupRadius, obstacles, tanks, arenaWidth, arenaHeight);
+        return isValidCirclePlacement (config.healthPackRadius, obstacles, tanks, arenaWidth, arenaHeight);
     }
 
     void draw (Renderer& renderer) const override
@@ -84,15 +84,15 @@ public:
 
         // Outer glow
         Color glowColor = { color.r, color.g, color.b, 80 };
-        renderer.drawFilledCircle (position, config.powerupRadius * 1.4f, glowColor);
+        renderer.drawFilledCircle (position, config.healthPackRadius * 1.4f, glowColor);
 
         // Main body
-        renderer.drawFilledCircle (position, config.powerupRadius, color);
-        renderer.drawCircle (position, config.powerupRadius, config.colorWhite);
+        renderer.drawFilledCircle (position, config.healthPackRadius, color);
+        renderer.drawCircle (position, config.healthPackRadius, config.colorWhite);
 
         // Draw cross/plus icon for health
         Color iconColor = config.colorWhite;
-        float r = config.powerupRadius * 0.5f;
+        float r = config.healthPackRadius * 0.5f;
         float thickness = r * 0.4f;
 
         // Horizontal bar
@@ -104,10 +104,10 @@ public:
     void drawPreview (Renderer& renderer, bool valid) const override
     {
         Color color = valid ? config.colorPlacementValid : config.colorPlacementInvalid;
-        renderer.drawFilledCircle (position, config.powerupRadius, color);
+        renderer.drawFilledCircle (position, config.healthPackRadius, color);
 
         // Show cross icon
-        float r = config.powerupRadius * 0.5f;
+        float r = config.healthPackRadius * 0.5f;
         float thickness = r * 0.4f;
         renderer.drawFilledRect ({ position.x - r, position.y - thickness / 2 }, r * 2, thickness, color);
         renderer.drawFilledRect ({ position.x - thickness / 2, position.y - r }, thickness, r * 2, color);
