@@ -105,6 +105,18 @@ bool Config::load()
         return false;
     }
 
+    // Check version - if it doesn't match, use defaults (don't load old config)
+    std::string fileVersion;
+    if (j.contains ("version") && j["version"].is_string())
+        fileVersion = j["version"].get<std::string>();
+
+    if (fileVersion != CONFIG_VERSION)
+    {
+        // Version mismatch - save new defaults and return
+        save();
+        return true;
+    }
+
     auto getSection = [&j] (const char* name) -> const json& {
         static const json empty = json::object();
         return j.contains (name) ? j[name] : empty;
@@ -278,7 +290,7 @@ bool Config::save() const
 
     json j;
 
-    j["version"] = "1.0.0";
+    j["version"] = CONFIG_VERSION;
 
     // Tank Physics
     j["tankPhysics"] = {

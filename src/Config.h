@@ -10,6 +10,9 @@
 // All tweakable game constants in one place
 // =============================================================================
 
+// Increment this when config format changes to reset user settings
+constexpr const char* CONFIG_VERSION = "1.1.0";
+
 class Config : public FileSystemWatcher::Listener
 {
 public:
