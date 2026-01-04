@@ -46,6 +46,9 @@ private:
     // Gun silencing - only one gun sound at a time
     float gunSilenceTimer = 0.0f;
 
+    // Collision sound cooldown
+    float collisionCooldownTimer = 0.0f;
+
     // Random number generator for variations
     std::mt19937 rng;
 

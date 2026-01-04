@@ -142,9 +142,11 @@ void Audio::update (float dt)
 
     // Update gun silence timer
     if (gunSilenceTimer > 0.0f)
-    {
         gunSilenceTimer -= dt;
-    }
+
+    // Update collision cooldown timer
+    if (collisionCooldownTimer > 0.0f)
+        collisionCooldownTimer -= dt;
 
     // Smoothly adjust engine volume
     float volumeSpeed = 2.0f; // Takes 0.5s to fully change
@@ -201,6 +203,11 @@ void Audio::playCollision (float screenX, float screenWidth)
     if (! initialized)
         return;
 
+    // Limit collision sound frequency to avoid screeching
+    if (collisionCooldownTimer > 0.0f)
+        return;
+
+    collisionCooldownTimer = 0.1f;  // 100ms cooldown
     playWithVariation (collisionSound, screenX, screenWidth);
 }
 

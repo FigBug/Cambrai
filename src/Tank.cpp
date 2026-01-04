@@ -12,7 +12,7 @@ Tank::Tank (int playerIndex_, Vec2 startPos, float startAngle, float tankSize)
     reloadTimer = config.fireInterval; // Start loaded
 }
 
-void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection)
+void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl)
 {
     // Handle destruction animation
     if (destroying)
@@ -142,29 +142,49 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     // Clamp to arena
     clampToArena (arenaWidth, arenaHeight);
 
-    // Update crosshair offset based on aim stick
-    if (aimInput.lengthSquared() > 0.01f)
-        crosshairOffset += aimInput * config.crosshairSpeed * dt;
+    // Track mode for isTurretOnTarget check
+    inDirectTurretMode = directTurretControl;
 
-    // Clamp crosshair to stay on screen
-    Vec2 crosshairWorldPos = position + crosshairOffset;
-    float margin = 10.0f;
-    if (crosshairWorldPos.x < margin)
-        crosshairOffset.x = margin - position.x;
-    else if (crosshairWorldPos.x > arenaWidth - margin)
-        crosshairOffset.x = arenaWidth - margin - position.x;
-    if (crosshairWorldPos.y < margin)
-        crosshairOffset.y = margin - position.y;
-    else if (crosshairWorldPos.y > arenaHeight - margin)
-        crosshairOffset.y = arenaHeight - margin - position.y;
+    if (directTurretControl)
+    {
+        // Direct turret rotation mode - aimInput.x rotates turret directly
+        if (std::abs (aimInput.x) > 0.1f)
+        {
+            turretAngle += aimInput.x * config.turretRotationSpeed * dt;
 
-    // Clamp crosshair to max distance
-    float crosshairDist = crosshairOffset.length();
-    if (crosshairDist > config.crosshairMaxDistance)
-        crosshairOffset = crosshairOffset.normalized() * config.crosshairMaxDistance;
+            // Normalize turret angle
+            while (turretAngle > pi)
+                turretAngle -= 2.0f * pi;
+            while (turretAngle < -pi)
+                turretAngle += 2.0f * pi;
+        }
+    }
+    else
+    {
+        // Crosshair mode - update crosshair offset based on aim stick
+        if (aimInput.lengthSquared() > 0.01f)
+            crosshairOffset += aimInput * config.crosshairSpeed * dt;
 
-    // Update turret to aim at crosshair
-    updateTurret (dt);
+        // Clamp crosshair to stay on screen
+        Vec2 crosshairWorldPos = position + crosshairOffset;
+        float margin = 10.0f;
+        if (crosshairWorldPos.x < margin)
+            crosshairOffset.x = margin - position.x;
+        else if (crosshairWorldPos.x > arenaWidth - margin)
+            crosshairOffset.x = arenaWidth - margin - position.x;
+        if (crosshairWorldPos.y < margin)
+            crosshairOffset.y = margin - position.y;
+        else if (crosshairWorldPos.y > arenaHeight - margin)
+            crosshairOffset.y = arenaHeight - margin - position.y;
+
+        // Clamp crosshair to max distance
+        float crosshairDist = crosshairOffset.length();
+        if (crosshairDist > config.crosshairMaxDistance)
+            crosshairOffset = crosshairOffset.normalized() * config.crosshairMaxDistance;
+
+        // Update turret to aim at crosshair
+        updateTurret (dt);
+    }
 
     // Update effects
     updateTrackMarks (dt);
@@ -218,6 +238,10 @@ void Tank::updateTurret (float dt)
 
 bool Tank::isTurretOnTarget() const
 {
+    // In direct turret control mode, turret is always "on target"
+    if (inDirectTurretMode)
+        return true;
+
     Vec2 toCrosshair = crosshairOffset;
     if (toCrosshair.lengthSquared() < 1.0f)
         return true;

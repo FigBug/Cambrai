@@ -25,6 +25,9 @@ public:
     int getNavigationY() const { return navY; }  // -1, 0, +1
     bool getConfirmInput() const { return confirmInput; }
 
+    // Aim mode toggle
+    bool getAimModeToggle() const { return aimModeToggle; }
+
 private:
     int playerIndex;
     int gamepadId = -1;
@@ -41,6 +44,9 @@ private:
     int navX = 0;
     int navY = 0;
     bool confirmInput = false;
+
+    // Aim mode toggle
+    bool aimModeToggle = false;
 
     float deadzone = 0.15f;
 

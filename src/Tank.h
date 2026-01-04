@@ -27,7 +27,7 @@ class Tank
 public:
     Tank (int playerIndex, Vec2 startPos, float startAngle, float tankSize);
 
-    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection);
+    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl = false);
 
     Vec2 getPosition() const                        { return position; }
     float getAngle() const                          { return angle; }
@@ -115,6 +115,9 @@ private:
     // Destruction
     bool destroying = false;
     float destroyTimer = 0.0f;
+
+    // Direct turret control mode (set each frame)
+    bool inDirectTurretMode = false;
 
     // Shooting
     std::vector<Shell> pendingShells;

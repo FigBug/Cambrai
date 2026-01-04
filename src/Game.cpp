@@ -118,6 +118,26 @@ void Game::update (float dt)
 
 void Game::updateTitle (float dt)
 {
+    // Adjust player count with left/right
+    bool left = IsKeyPressed (KEY_LEFT) || IsKeyPressed (KEY_A);
+    bool right = IsKeyPressed (KEY_RIGHT) || IsKeyPressed (KEY_D);
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (IsGamepadAvailable (i))
+        {
+            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_LEFT))
+                left = true;
+            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_RIGHT))
+                right = true;
+        }
+    }
+
+    if (left && numPlayers > 2)
+        numPlayers--;
+    if (right && numPlayers < 4)
+        numPlayers++;
+
     if (anyButtonPressed())
     {
         startSelection();
@@ -191,7 +211,7 @@ std::string Game::obstacleTypeName (ObstacleType type) const
 
 bool Game::isObstacleSelectedByOther (int obstacleIndex, int playerIndex) const
 {
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (i != playerIndex && hasSelected[i] && selectedObstacleIndex[i] == obstacleIndex)
             return true;
@@ -217,7 +237,7 @@ void Game::startSelection()
     selectionTimer = config.selectionTime;
 
     // Initialize cursor positions spread across the grid
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         hasSelected[i] = false;
         selectedObstacleIndex[i] = -1;
@@ -237,7 +257,7 @@ void Game::updateSelection (float dt)
     selectionTimer -= dt;
 
     // Update each player
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (hasSelected[i])
             continue;
@@ -364,7 +384,7 @@ void Game::updateSelection (float dt)
 
     // Check if selection phase is done
     bool allSelected = true;
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (!hasSelected[i])
             allSelected = false;
@@ -373,7 +393,7 @@ void Game::updateSelection (float dt)
     if (allSelected || selectionTimer <= 0)
     {
         // Auto-confirm anyone who hasn't selected
-        for (int i = 0; i < MAX_PLAYERS; ++i)
+        for (int i = 0; i < numPlayers; ++i)
         {
             if (!hasSelected[i])
             {
@@ -425,7 +445,7 @@ void Game::renderSelection()
             // Determine cell state
             bool isTaken = false;
             int takenByPlayer = -1;
-            for (int p = 0; p < MAX_PLAYERS; ++p)
+            for (int p = 0; p < numPlayers; ++p)
             {
                 if (hasSelected[p] && selectedObstacleIndex[p] == idx)
                 {
@@ -471,7 +491,7 @@ void Game::renderSelection()
             }
 
             // Draw player cursor outlines (for both selecting and selected players)
-            for (int p = 0; p < MAX_PLAYERS; ++p)
+            for (int p = 0; p < numPlayers; ++p)
             {
                 // Show outline if player is hovering here OR has selected this cell
                 bool showOutline = false;
@@ -506,9 +526,9 @@ void Game::renderSelection()
     // Draw player status at bottom
     float slotY = h - 60.0f;
     float slotSpacing = 200.0f;
-    float startX = w / 2.0f - 1.5f * slotSpacing;
+    float startX = w / 2.0f - (numPlayers - 1) * 0.5f * slotSpacing;
 
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         Vec2 pos = { startX + i * slotSpacing, slotY };
         Color color;
@@ -537,7 +557,7 @@ void Game::renderSelection()
 void Game::startPlacement()
 {
     // Shuffle starting positions
-    for (int i = MAX_TANKS - 1; i > 0; --i)
+    for (int i = numPlayers - 1; i > 0; --i)
     {
         int j = randomInt (i + 1);
         std::swap (startPositionOrder[i], startPositionOrder[j]);
@@ -545,11 +565,15 @@ void Game::startPlacement()
 
     // Create tanks at randomized starting positions
     float tankSize = renderer->getTankSize();
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         int posIndex = startPositionOrder[i];
         tanks[i] = std::make_unique<Tank> (i, getTankStartPosition (posIndex), getTankStartAngle (posIndex), tankSize);
     }
+
+    // Clear unused tank slots
+    for (int i = numPlayers; i < MAX_TANKS; ++i)
+        tanks[i].reset();
 
     shells.clear();
     explosions.clear();
@@ -567,7 +591,7 @@ void Game::startPlacement()
     }
 
     // Use selected obstacles from selection phase
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         assignedObstacles[i] = indexToObstacleType (selectedObstacleIndex[i]);
     }
@@ -575,7 +599,7 @@ void Game::startPlacement()
     // Initialize placement
     float w, h;
     getWindowSize (w, h);
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         hasPlaced[i] = false;
         placementPositions[i] = { w / 2.0f, h / 2.0f };
@@ -594,7 +618,7 @@ void Game::updatePlacement (float dt)
     placementTimer -= dt;
 
     // Update placement for each player
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (hasPlaced[i])
             continue;
@@ -674,7 +698,7 @@ void Game::updatePlacement (float dt)
 
     // Check if placement is done
     bool allPlaced = true;
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (!hasPlaced[i])
             allPlaced = false;
@@ -687,7 +711,7 @@ void Game::updatePlacement (float dt)
         for (auto& tank : tanks)
             if (tank) tankPtrs.push_back (tank.get());
 
-        for (int i = 0; i < MAX_PLAYERS; ++i)
+        for (int i = 0; i < numPlayers; ++i)
         {
             if (hasPlaced[i])
                 continue;
@@ -735,12 +759,12 @@ void Game::startRound()
     stateTimer = 0.0f;
 
     // Reset kills for this round
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
         kills[i] = 0;
 
     // Reset stalemate detection
     noDamageTimer = 0.0f;
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
         lastTankHealth[i] = tanks[i] ? tanks[i]->getHealth() : 0.0f;
 
     roundWinner = -1;
@@ -755,7 +779,7 @@ void Game::updatePlaying (float dt)
     stateTimer += dt;
 
     // Update tanks
-    for (int tankIdx = 0; tankIdx < MAX_TANKS; ++tankIdx)
+    for (int tankIdx = 0; tankIdx < numPlayers; ++tankIdx)
     {
         if (! tanks[tankIdx] || ! tanks[tankIdx]->isVisible())
             continue;
@@ -770,12 +794,18 @@ void Game::updatePlaying (float dt)
             moveInput = players[tankIdx]->getMoveInput();
             aimInput = players[tankIdx]->getAimInput();
             fireInput = (stateTimer > config.roundStartDelay) && players[tankIdx]->getFireInput();
+
+            // Handle aim mode toggle (global setting)
+            if (players[tankIdx]->getAimModeToggle())
+            {
+                aimMode = (aimMode == AimMode::Crosshair) ? AimMode::Rotation : AimMode::Crosshair;
+            }
         }
         else
         {
             // AI control
             std::vector<const Tank*> enemies;
-            for (int j = 0; j < MAX_TANKS; ++j)
+            for (int j = 0; j < numPlayers; ++j)
                 if (j != tankIdx && tanks[j] && tanks[j]->isAlive())
                     enemies.push_back (tanks[j].get());
 
@@ -785,10 +815,11 @@ void Game::updatePlaying (float dt)
             fireInput = aiControllers[tankIdx]->getFireInput();
         }
 
-        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight, windDirection);
+        bool directTurret = isHumanControlled && (aimMode == AimMode::Rotation);
+        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight, windDirection, directTurret);
 
-        // Mouse aiming
-        if (isHumanControlled && players[tankIdx]->isUsingMouse())
+        // Mouse aiming (only in crosshair mode)
+        if (isHumanControlled && players[tankIdx]->isUsingMouse() && aimMode == AimMode::Crosshair)
             tanks[tankIdx]->setCrosshairPosition (players[tankIdx]->getMousePosition());
 
         // Collect shells
@@ -847,7 +878,7 @@ void Game::updatePlaying (float dt)
     {
         float totalThrottle = 0.0f;
         int aliveCount = 0;
-        for (int i = 0; i < MAX_TANKS; ++i)
+        for (int i = 0; i < numPlayers; ++i)
         {
             if (tanks[i] && tanks[i]->isAlive())
             {
@@ -1116,12 +1147,12 @@ void Game::checkCollisions()
     }
 
     // Tank-to-tank collisions
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (!tanks[i] || !tanks[i]->isAlive())
             continue;
 
-        for (int j = i + 1; j < MAX_TANKS; ++j)
+        for (int j = i + 1; j < numPlayers; ++j)
         {
             if (!tanks[j] || !tanks[j]->isAlive())
                 continue;
@@ -1188,7 +1219,7 @@ void Game::checkRoundOver()
 
     // Check for damage taken (stalemate detection)
     bool damageTaken = false;
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (tanks[i] && tanks[i]->isAlive() && !tanks[i]->isDestroying())
         {
@@ -1286,7 +1317,7 @@ void Game::resetGame()
     obstacles.clear();
 
     currentRound = 0;
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         scores[i] = 0;
         kills[i] = 0;
@@ -1340,22 +1371,19 @@ void Game::renderTitle()
 
     renderer->drawTextCentered ("CAMBRAI", { w / 2.0f, h / 3.0f }, 8.0f, config.colorTitle);
 
-    int connectedCount = 0;
-    for (auto& player : players)
-        if (player->isConnected())
-            connectedCount++;
+    // Player count selector
+    std::string playerCountText = "< " + std::to_string (numPlayers) + " PLAYERS >";
+    renderer->drawTextCentered (playerCountText, { w / 2.0f, h * 0.48f }, 3.0f, config.colorSubtitle);
+    renderer->drawTextCentered ("USE LEFT/RIGHT TO CHANGE", { w / 2.0f, h * 0.54f }, 1.5f, config.colorGreySubtle);
 
-    std::string playerText = std::to_string (connectedCount) + " PLAYERS CONNECTED";
-    renderer->drawTextCentered (playerText, { w / 2.0f, h * 0.5f }, 3.0f, config.colorSubtitle);
+    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 10", { w / 2.0f, h * 0.62f }, 2.5f, config.colorSubtitle);
 
-    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 10", { w / 2.0f, h * 0.6f }, 2.5f, config.colorSubtitle);
-
-    // Player slots
+    // Player slots - only show numPlayers slots
     float slotSpacing = 80.0f;
-    float startX = w / 2.0f - 1.5f * slotSpacing;
+    float startX = w / 2.0f - (numPlayers - 1) * 0.5f * slotSpacing;
     float slotY = h * 0.72f;
 
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         Vec2 slotPos = { startX + i * slotSpacing, slotY };
         Color slotColor;
@@ -1400,7 +1428,7 @@ void Game::renderPlacement()
             renderer->drawTankGhost (*tank);
 
     // Draw placement previews for human players
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (hasPlaced[i] || !players[i]->isConnected())
             continue;
@@ -1423,9 +1451,9 @@ void Game::renderPlacement()
     // Draw obstacle type for each player
     float slotY = h - 50.0f;
     float slotSpacing = 200.0f;
-    float startX = w / 2.0f - 1.5f * slotSpacing;
+    float startX = w / 2.0f - (numPlayers - 1) * 0.5f * slotSpacing;
 
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         Vec2 pos = { startX + i * slotSpacing, slotY };
         Color color = tanks[i] ? tanks[i]->getColor() : config.colorGrey;
@@ -1485,19 +1513,22 @@ void Game::renderPlaying()
     for (const auto& explosion : explosions)
         renderer->drawExplosion (explosion);
 
-    // Draw crosshairs
-    for (const auto& tank : tanks)
-        if (tank && tank->isAlive())
-            renderer->drawCrosshair (*tank);
+    // Draw crosshairs (only in crosshair aim mode)
+    if (aimMode == AimMode::Crosshair)
+    {
+        for (int i = 0; i < numPlayers; ++i)
+            if (tanks[i] && tanks[i]->isAlive())
+                renderer->drawCrosshair (*tanks[i]);
+    }
 
     // Draw HUDs
     float hudWidth = 150.0f;
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         if (tanks[i])
         {
             float alpha = tanks[i]->isAlive() ? 1.0f : 0.4f;
-            renderer->drawTankHUD (*tanks[i], i, MAX_TANKS, w, hudWidth, alpha);
+            renderer->drawTankHUD (*tanks[i], i, numPlayers, w, hudWidth, alpha);
         }
     }
 
@@ -1508,9 +1539,9 @@ void Game::renderPlaying()
     // Draw scores on bottom
     float scoreY = h - 50.0f;
     float scoreSpacing = 100.0f;
-    float scoreStartX = w / 2.0f - 1.5f * scoreSpacing;
+    float scoreStartX = w / 2.0f - (numPlayers - 1) * 0.5f * scoreSpacing;
 
-    for (int i = 0; i < MAX_TANKS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         Vec2 pos = { scoreStartX + i * scoreSpacing, scoreY };
         Color color = tanks[i] ? tanks[i]->getColor() : config.colorGrey;
@@ -1543,7 +1574,7 @@ void Game::renderGameOver()
 
     // Find winner (highest score)
     int winner = 0;
-    for (int i = 1; i < MAX_PLAYERS; ++i)
+    for (int i = 1; i < numPlayers; ++i)
     {
         if (scores[i] > scores[winner])
             winner = i;
@@ -1554,7 +1585,7 @@ void Game::renderGameOver()
 
     // Final scores
     std::string scoresText = "";
-    for (int i = 0; i < MAX_PLAYERS; ++i)
+    for (int i = 0; i < numPlayers; ++i)
     {
         scoresText += "P" + std::to_string (i + 1) + ": " + std::to_string (scores[i]) + "  ";
     }

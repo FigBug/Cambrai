@@ -22,6 +22,12 @@ enum class GameState
     GameOver      // After all rounds
 };
 
+enum class AimMode
+{
+    Crosshair,    // Right stick moves crosshair, turret aims at it
+    Rotation      // Right stick left/right rotates turret directly
+};
+
 struct Explosion
 {
     Vec2 position;
@@ -54,6 +60,7 @@ private:
 
     bool running = false;
     GameState state = GameState::Title;
+    int numPlayers = 4;  // Configurable from 2-4
     int currentRound = 0;
     float stateTimer = 0.0f;
     float time = 0.0f;
@@ -97,6 +104,9 @@ private:
 
     // Random starting positions (shuffled each round)
     std::array<int, MAX_TANKS> startPositionOrder = { 0, 1, 2, 3 };
+
+    // Global aim mode for all players
+    AimMode aimMode = AimMode::Crosshair;
 
     void handleEvents();
     void update (float dt);

@@ -41,6 +41,7 @@ void Player::update()
         navX = 0;
         navY = 0;
         confirmInput = false;
+        aimModeToggle = false;
         return;
     }
 
@@ -87,6 +88,9 @@ void Player::update()
         navY = 1;
 
     confirmInput = IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
+
+    // Right stick click toggles aim mode
+    aimModeToggle = IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_RIGHT_THUMB);
 }
 
 void Player::updateKeyboardMouse()
@@ -133,6 +137,9 @@ void Player::updateKeyboardMouse()
         navY = 1;
 
     confirmInput = IsKeyPressed (KEY_ENTER) || IsKeyPressed (KEY_SPACE);
+
+    // Tab toggles aim mode
+    aimModeToggle = IsKeyPressed (KEY_TAB);
 }
 
 float Player::applyDeadzone (float value) const
