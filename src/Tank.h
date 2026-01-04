@@ -27,7 +27,7 @@ class Tank
 public:
     Tank (int playerIndex, Vec2 startPos, float startAngle, float tankSize);
 
-    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight);
+    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection);
 
     Vec2 getPosition() const                        { return position; }
     float getAngle() const                          { return angle; }
@@ -120,7 +120,7 @@ private:
     std::vector<Shell> pendingShells;
 
     void clampToArena (float arenaWidth, float arenaHeight);
-    void updateSmoke (float dt);
+    void updateSmoke (float dt, Vec2 windDirection);
     void updateTrackMarks (float dt);
     void updateTurret (float dt);
     bool fireShell();

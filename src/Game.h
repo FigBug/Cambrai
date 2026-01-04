@@ -92,6 +92,9 @@ private:
     float noDamageTimer = 0.0f;
     std::array<float, MAX_TANKS> lastTankHealth = {};
 
+    // Wind (random direction per match, affects smoke)
+    Vec2 windDirection = { 1.0f, 0.0f };
+
     // Random starting positions (shuffled each round)
     std::array<int, MAX_TANKS> startPositionOrder = { 0, 1, 2, 3 };
 

@@ -103,6 +103,7 @@ public:
     float smokeDamageMultiplier       = 3.0f;
     float smokeBaseRadius             = 3.0f;
     float smokeBaseAlpha              = 0.5f;
+    float smokeWindSpeed              = 30.0f;        // How fast wind blows smoke
 
     // -------------------------------------------------------------------------
     // Track Marks

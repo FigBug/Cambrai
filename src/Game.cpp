@@ -785,7 +785,7 @@ void Game::updatePlaying (float dt)
             fireInput = aiControllers[tankIdx]->getFireInput();
         }
 
-        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight);
+        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight, windDirection);
 
         // Mouse aiming
         if (isHumanControlled && players[tankIdx]->isUsingMouse())
@@ -1236,7 +1236,7 @@ void Game::updateRoundOver (float dt)
     for (auto& tank : tanks)
     {
         if (tank && tank->isVisible())
-            tank->update (dt, { 0, 0 }, { 0, 0 }, false, arenaWidth, arenaHeight);
+            tank->update (dt, { 0, 0 }, { 0, 0 }, false, arenaWidth, arenaHeight, windDirection);
     }
 
     // Update explosions
@@ -1291,6 +1291,10 @@ void Game::resetGame()
         scores[i] = 0;
         kills[i] = 0;
     }
+
+    // Random wind direction for this match
+    float windAngle = randomFloat (0.0f, 2.0f * 3.14159265f);
+    windDirection = { std::cos (windAngle), std::sin (windAngle) };
 }
 
 void Game::render()

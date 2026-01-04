@@ -12,7 +12,7 @@ Tank::Tank (int playerIndex_, Vec2 startPos, float startAngle, float tankSize)
     reloadTimer = config.fireInterval; // Start loaded
 }
 
-void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight)
+void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection)
 {
     // Handle destruction animation
     if (destroying)
@@ -25,7 +25,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
         velocity *= 0.95f;
         position += velocity * dt;
         clampToArena (arenaWidth, arenaHeight);
-        updateSmoke (dt);
+        updateSmoke (dt, windDirection);
         return;
     }
 
@@ -75,7 +75,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
             crosshairOffset = crosshairOffset.normalized() * config.crosshairMaxDistance;
 
         updateTurret (dt);
-        updateSmoke (dt);
+        updateSmoke (dt, windDirection);
         return;
     }
 
@@ -168,7 +168,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
 
     // Update effects
     updateTrackMarks (dt);
-    updateSmoke (dt);
+    updateSmoke (dt, windDirection);
 }
 
 void Tank::updateTurret (float dt)
@@ -413,12 +413,14 @@ void Tank::updateTrackMarks (float dt)
     }
 }
 
-void Tank::updateSmoke (float dt)
+void Tank::updateSmoke (float dt, Vec2 windDirection)
 {
-    // Fade existing smoke
+    // Fade existing smoke and apply wind
     for (auto it = smoke.begin(); it != smoke.end();)
     {
         it->alpha -= it->fadeRate * dt;
+        it->position += windDirection * config.smokeWindSpeed * dt;
+
         if (it->alpha <= 0.0f)
             it = smoke.erase (it);
         else
