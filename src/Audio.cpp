@@ -26,9 +26,9 @@ static std::string getResourcePath (const char* filename)
     return filename; // Fallback to relative path
 }
 #elif defined(__linux__)
+#include <linux/limits.h>
 #include <string>
 #include <unistd.h>
-#include <linux/limits.h>
 
 static std::string getResourcePath (const char* filename)
 {
@@ -76,7 +76,7 @@ static std::string getResourcePath (const char* filename)
 #endif
 
 Audio::Audio()
-    : rng (std::random_device{}())
+    : rng (std::random_device {}())
 {
 }
 
@@ -102,10 +102,7 @@ bool Audio::init()
     collisionSound = LoadSound (getResourcePath ("assets/ShipCollide.wav").c_str());
     engineSound = LoadMusicStream (getResourcePath ("assets/Engine_1.wav").c_str());
 
-    if (cannonSounds[0].frameCount == 0 || cannonSounds[1].frameCount == 0 ||
-        splashSound.frameCount == 0 ||
-        explosionSounds[0].frameCount == 0 || explosionSounds[1].frameCount == 0 ||
-        collisionSound.frameCount == 0 || engineSound.frameCount == 0)
+    if (cannonSounds[0].frameCount == 0 || cannonSounds[1].frameCount == 0 || splashSound.frameCount == 0 || explosionSounds[0].frameCount == 0 || explosionSounds[1].frameCount == 0 || collisionSound.frameCount == 0 || engineSound.frameCount == 0)
     {
         return false;
     }
@@ -210,7 +207,7 @@ void Audio::playCollision (float screenX, float screenWidth)
     if (collisionCooldownTimer > 0.0f)
         return;
 
-    collisionCooldownTimer = 0.1f;  // 100ms cooldown
+    collisionCooldownTimer = 0.1f; // 100ms cooldown
     playWithVariation (collisionSound, screenX, screenWidth);
 }
 

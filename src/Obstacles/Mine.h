@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
+#include "Obstacle.h"
 
 class Mine : public Obstacle
 {
@@ -20,7 +20,7 @@ public:
 
     void update (float dt, const std::vector<Tank*>&, float, float) override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         armTimer += dt;
@@ -33,7 +33,7 @@ public:
 
     bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
-        if (!alive)
+        if (! alive)
             return false;
 
         if (checkCircleTankCollision (tank, config.mineRadius, pushDirection, pushDistance))
@@ -52,7 +52,7 @@ public:
     void draw (Renderer& renderer) const override
     {
         float radius = config.mineRadius;
-        unsigned char alpha = revealed ? 255 : 13;  // 0.05 * 255 ≈ 13
+        unsigned char alpha = revealed ? 255 : 13; // 0.05 * 255 ≈ 13
 
         Color color = isArmed() ? config.colorMineArmed : config.colorMine;
         color.a = alpha;

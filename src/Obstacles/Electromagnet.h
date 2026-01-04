@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Obstacle.h"
+#include "../Random.h"
 #include "../Renderer.h"
 #include "../Tank.h"
-#include "../Random.h"
+#include "Obstacle.h"
 
 class Electromagnet : public Obstacle
 {
@@ -26,7 +26,7 @@ public:
 
     void update (float dt, const std::vector<Tank*>&, float, float) override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         // Update duty cycle
@@ -60,7 +60,7 @@ public:
 private:
     Vec2 calculatePullForceAtPosition (Vec2 targetPos, float force) const
     {
-        if (!alive || !active)
+        if (! alive || ! active)
             return { 0, 0 };
 
         Vec2 toMagnet = position - targetPos;
@@ -70,7 +70,7 @@ private:
         {
             // Force falls off with distance squared
             float strength = 1.0f - (dist / config.electromagnetRange);
-            strength *= strength;  // Quadratic falloff
+            strength *= strength; // Quadratic falloff
             return toMagnet.normalized() * force * strength;
         }
 
@@ -97,7 +97,7 @@ public:
 
     void draw (Renderer& renderer) const override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         Color baseColor = active ? config.colorElectromagnetOn : config.colorElectromagnetOff;
@@ -149,7 +149,7 @@ public:
 private:
     bool active = true;
     float cycleTimer = 0.0f;
-    float cycleDuration = 10.0f;  // Randomized in constructor
+    float cycleDuration = 10.0f; // Randomized in constructor
     float pulseTimer = 0.0f;
 
     static constexpr float pi = 3.14159265358979323846f;

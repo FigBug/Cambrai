@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
+#include "Obstacle.h"
 
 class BreakableWall : public Wall
 {
@@ -17,7 +17,7 @@ public:
 
     ShellHitResult checkShellCollision (const Shell& shell, Vec2& collisionPoint, Vec2& normal) const override
     {
-        if (!alive)
+        if (! alive)
             return ShellHitResult::Miss;
 
         if (checkWallShellCollision (shell, collisionPoint, normal))

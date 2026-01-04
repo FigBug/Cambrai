@@ -13,16 +13,16 @@ public:
     Vec2 getMoveInput() const { return moveInput; }
     Vec2 getAimInput() const { return aimInput; }
     bool getFireInput() const { return fireInput; }
-    bool getPlaceInput() const { return placeInput; }      // For placement phase
-    bool getRotateInput() const { return rotateInput; }    // For rotating obstacle during placement
+    bool getPlaceInput() const { return placeInput; } // For placement phase
+    bool getRotateInput() const { return rotateInput; } // For rotating obstacle during placement
     bool isConnected() const { return gamepadId >= 0 || usingKeyboard; }
     bool isUsingMouse() const { return usingKeyboard; }
     Vec2 getMousePosition() const { return mousePosition; }
     int getPlayerIndex() const { return playerIndex; }
 
     // Grid navigation (selection phase)
-    int getNavigationX() const { return navX; }  // -1, 0, +1
-    int getNavigationY() const { return navY; }  // -1, 0, +1
+    int getNavigationX() const { return navX; } // -1, 0, +1
+    int getNavigationY() const { return navY; } // -1, 0, +1
     bool getConfirmInput() const { return confirmInput; }
 
     // Aim mode toggle

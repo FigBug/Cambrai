@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
+#include "Obstacle.h"
 
 class Pit : public Obstacle
 {
@@ -28,7 +28,7 @@ public:
 
     bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
-        if (!alive)
+        if (! alive)
             return false;
 
         Vec2 diff = tank.getPosition() - position;
@@ -38,7 +38,7 @@ public:
         {
             revealed = true;
             pushDirection = diff.normalized();
-            pushDistance = 0.0f;  // No push, tank is trapped
+            pushDistance = 0.0f; // No push, tank is trapped
             return true;
         }
         return false;
@@ -48,7 +48,7 @@ public:
     {
         if (tank.canUseTeleporter())
             tank.trapInPit (config.pitTrapDuration);
-        return false;  // No physics push
+        return false; // No physics push
     }
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override
@@ -58,7 +58,7 @@ public:
 
     void draw (Renderer& renderer) const override
     {
-        unsigned char alpha = revealed ? 255 : 13;  // 0.05 * 255 ≈ 13
+        unsigned char alpha = revealed ? 255 : 13; // 0.05 * 255 ≈ 13
 
         // Dark pit with concentric rings for depth effect
         Color pitColor = config.colorPit;

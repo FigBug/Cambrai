@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
 #include "../Tank.h"
+#include "Obstacle.h"
 
 class HealthPack : public Obstacle
 {
@@ -18,17 +18,17 @@ public:
     // Override base class collection effect
     CollectionEffect consumeCollectionEffect() override
     {
-        if (collectedBy >= 0 && !effectApplied)
+        if (collectedBy >= 0 && ! effectApplied)
         {
             effectApplied = true;
-            return { collectedBy, 0, 0.5f };  // 50% health restore
+            return { collectedBy, 0, 0.5f }; // 50% health restore
         }
         return {};
     }
 
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override
     {
-        if (!alive || collectedBy >= 0)
+        if (! alive || collectedBy >= 0)
             return;
 
         // Pulse animation
@@ -39,7 +39,7 @@ public:
         // Check if any tank touches the health pack
         for (Tank* tank : tanks)
         {
-            if (!tank || !tank->isAlive())
+            if (! tank || ! tank->isAlive())
                 continue;
 
             float dist = (tank->getPosition() - position).length();
@@ -71,7 +71,7 @@ public:
 
     void draw (Renderer& renderer) const override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         // Pulsing green color for health

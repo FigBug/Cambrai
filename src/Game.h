@@ -15,17 +15,17 @@
 enum class GameState
 {
     Title,
-    Selection,    // Players select their obstacles from grid
-    Placement,    // Players place their obstacles
+    Selection, // Players select their obstacles from grid
+    Placement, // Players place their obstacles
     Playing,
     RoundOver,
-    GameOver      // After all rounds
+    GameOver // After all rounds
 };
 
 enum class AimMode
 {
-    Crosshair,    // Right stick moves crosshair, turret aims at it
-    Rotation      // Right stick left/right rotates turret directly
+    Crosshair, // Right stick moves crosshair, turret aims at it
+    Rotation // Right stick left/right rotates turret directly
 };
 
 struct Explosion
@@ -60,7 +60,7 @@ private:
 
     bool running = false;
     GameState state = GameState::Title;
-    int numPlayers = 4;  // Configurable from 2-4
+    int numPlayers = 4; // Configurable from 2-4
     int currentRound = 0;
     float stateTimer = 0.0f;
     float time = 0.0f;
@@ -74,9 +74,9 @@ private:
     std::vector<std::unique_ptr<Obstacle>> obstacles;
 
     // Selection phase
-    std::array<int, MAX_PLAYERS> selectionCursorIndex = {};   // Grid position (0-10)
+    std::array<int, MAX_PLAYERS> selectionCursorIndex = {}; // Grid position (0-10)
     std::array<bool, MAX_PLAYERS> hasSelected = {};
-    std::array<int, MAX_PLAYERS> selectedObstacleIndex = {};  // Which obstacle type selected
+    std::array<int, MAX_PLAYERS> selectedObstacleIndex = {}; // Which obstacle type selected
     float selectionTimer = 0.0f;
 
     // AI selection behavior
@@ -91,8 +91,8 @@ private:
     float placementTimer = 0.0f;
 
     // Scoring
-    std::array<int, MAX_PLAYERS> scores = {};  // Total points
-    std::array<int, MAX_PLAYERS> kills = {};   // Kills this round
+    std::array<int, MAX_PLAYERS> scores = {}; // Total points
+    std::array<int, MAX_PLAYERS> kills = {}; // Kills this round
     int roundWinner = -1;
 
     // Stalemate detection

@@ -9,15 +9,13 @@ AIController::AIController()
     personalityFactor = randomFloat (0.9f, 1.1f);
 }
 
-void AIController::update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies,
-                           const std::vector<Shell>& shells, const std::vector<std::unique_ptr<Obstacle>>& obstacles,
-                           float arenaWidth, float arenaHeight)
+void AIController::update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies, const std::vector<Shell>& shells, const std::vector<std::unique_ptr<Obstacle>>& obstacles, float arenaWidth, float arenaHeight)
 {
     moveInput = { 0, 0 };
     aimInput = { 0, 0 };
     fireInput = false;
 
-    if (!myTank.isAlive())
+    if (! myTank.isAlive())
         return;
 
     // Update wander timer
@@ -87,11 +85,11 @@ void AIController::update (float dt, const Tank& myTank, const std::vector<const
         {
             // Adjust angle for reverse
             angleDiff = angleDiff > 0 ? angleDiff - pi : angleDiff + pi;
-            moveInput.y = 0.5f * personalityFactor;  // Reverse
+            moveInput.y = 0.5f * personalityFactor; // Reverse
         }
         else
         {
-            moveInput.y = -0.8f * personalityFactor;  // Forward
+            moveInput.y = -0.8f * personalityFactor; // Forward
         }
 
         // Rotate toward desired direction
@@ -161,7 +159,7 @@ Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<std::un
 
     for (const auto& obstacle : obstacles)
     {
-        if (!obstacle->isAlive())
+        if (! obstacle->isAlive())
             continue;
 
         Vec2 toMe = pos - obstacle->getPosition();
@@ -171,7 +169,7 @@ Vec2 AIController::avoidObstacles (const Tank& myTank, const std::vector<std::un
         if (obstacle->getType() == ObstacleType::Mine)
             dangerDist = 80.0f;
         else if (obstacle->getType() == ObstacleType::AutoTurret)
-            dangerDist = 350.0f;  // Stay out of turret range
+            dangerDist = 350.0f; // Stay out of turret range
 
         if (dist < dangerDist && dist > 0.1f)
         {
@@ -190,7 +188,7 @@ Vec2 AIController::avoidShells (const Tank& myTank, const std::vector<Shell>& sh
 
     for (const auto& shell : shells)
     {
-        if (!shell.isAlive())
+        if (! shell.isAlive())
             continue;
 
         // Don't dodge own shells
@@ -233,7 +231,7 @@ const Tank* AIController::findBestTarget (const Tank& myTank, const std::vector<
 
     for (const Tank* enemy : enemies)
     {
-        if (!enemy || !enemy->isAlive())
+        if (! enemy || ! enemy->isAlive())
             continue;
 
         Vec2 toEnemy = enemy->getPosition() - myTank.getPosition();
@@ -279,7 +277,7 @@ Vec2 AIController::seekCollectibles (const Tank& myTank, const std::vector<std::
 
     for (const auto& obstacle : obstacles)
     {
-        if (!obstacle->isAlive())
+        if (! obstacle->isAlive())
             continue;
 
         ObstacleType type = obstacle->getType();

@@ -41,7 +41,7 @@ public:
     }
 
 private:
-    Random() : engine (std::random_device{}()) {}
+    Random() : engine (std::random_device {}()) {}
 
     std::mt19937 engine;
 };

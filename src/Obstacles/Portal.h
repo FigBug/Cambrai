@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Obstacle.h"
-#include "../Renderer.h"
 #include "../Random.h"
+#include "../Renderer.h"
+#include "Obstacle.h"
 
 class Portal : public Obstacle
 {
@@ -23,7 +23,7 @@ public:
 
     void update (float dt, const std::vector<Tank*>&, float, float) override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         animTimer += dt;
@@ -37,7 +37,7 @@ public:
 
     bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
-        if (!alive)
+        if (! alive)
             return false;
 
         Vec2 diff = tank.getPosition() - position;
@@ -46,7 +46,7 @@ public:
         if (dist < config.portalRadius)
         {
             pushDirection = diff.normalized();
-            pushDistance = 0.0f;  // No push, tank teleports
+            pushDistance = 0.0f; // No push, tank teleports
             return true;
         }
         return false;
@@ -54,7 +54,7 @@ public:
 
     bool handleTankCollision (Tank& tank, const std::vector<std::unique_ptr<Obstacle>>& allObstacles) override
     {
-        if (!tank.canUseTeleporter())
+        if (! tank.canUseTeleporter())
             return false;
 
         // Find all other portals
@@ -66,13 +66,13 @@ public:
         }
 
         // Teleport to random portal if there are others
-        if (!otherPortals.empty())
+        if (! otherPortals.empty())
         {
             Obstacle* destPortal = otherPortals[randomInt ((int) otherPortals.size())];
             tank.teleportTo (destPortal->getPosition());
         }
 
-        return false;  // No physics push
+        return false; // No physics push
     }
 
     bool isValidPlacement (const std::vector<std::unique_ptr<Obstacle>>& obstacles, const std::vector<Tank*>& tanks, float arenaWidth, float arenaHeight) const override

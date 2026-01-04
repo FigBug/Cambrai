@@ -1,6 +1,6 @@
 #include "Obstacle.h"
-#include "../Tank.h"
 #include "../Renderer.h"
+#include "../Tank.h"
 #include <algorithm>
 
 bool Obstacle::checkCircleTankCollision (const Tank& tank, float radius, Vec2& pushDirection, float& pushDistance) const
@@ -22,8 +22,7 @@ bool Obstacle::isValidCirclePlacement (float radius, const std::vector<std::uniq
 {
     float margin = 20.0f;
 
-    if (position.x - radius < margin || position.x + radius > arenaWidth - margin ||
-        position.y - radius < margin || position.y + radius > arenaHeight - margin)
+    if (position.x - radius < margin || position.x + radius > arenaWidth - margin || position.y - radius < margin || position.y + radius > arenaHeight - margin)
         return false;
 
     for (const auto& other : obstacles)
@@ -40,7 +39,7 @@ bool Obstacle::isValidCirclePlacement (float radius, const std::vector<std::uniq
 
     for (Tank* tank : tanks)
     {
-        if (!tank || !tank->isAlive())
+        if (! tank || ! tank->isAlive())
             continue;
 
         Vec2 diff = position - tank->getPosition();
@@ -55,7 +54,7 @@ bool Obstacle::isValidCirclePlacement (float radius, const std::vector<std::uniq
 
 bool Wall::checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance)
 {
-    if (!alive)
+    if (! alive)
         return false;
 
     auto wallCorners = getCorners();
@@ -72,7 +71,7 @@ bool Wall::checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pus
         (tankCorners[3] - tankCorners[0]).normalized()
     };
 
-    for (int a = 0; a < 4 && !separated; ++a)
+    for (int a = 0; a < 4 && ! separated; ++a)
     {
         Vec2 axis = axes[a];
         Vec2 perpAxis = { -axis.y, axis.x };
@@ -105,7 +104,7 @@ bool Wall::checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pus
         }
     }
 
-    if (!separated)
+    if (! separated)
     {
         Vec2 toTank = tank.getPosition() - position;
         if (toTank.dot (minAxis) < 0)
@@ -135,7 +134,7 @@ bool Wall::checkCommonPlacement (const std::vector<std::unique_ptr<Obstacle>>& o
 
     for (Tank* tank : tanks)
     {
-        if (!tank || !tank->isAlive())
+        if (! tank || ! tank->isAlive())
             continue;
 
         Vec2 diff = position - tank->getPosition();

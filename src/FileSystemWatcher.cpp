@@ -2,18 +2,18 @@
 
 #include <algorithm>
 #include <atomic>
+#include <map>
 #include <mutex>
 #include <thread>
-#include <map>
 
 #if defined(__APPLE__)
 #include <CoreServices/CoreServices.h>
 #include <dispatch/dispatch.h>
 #elif defined(__linux__)
-#include <sys/inotify.h>
-#include <unistd.h>
 #include <limits.h>
 #include <poll.h>
+#include <sys/inotify.h>
+#include <unistd.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #endif
@@ -67,8 +67,7 @@ public:
             paths,
             kFSEventStreamEventIdSinceNow,
             0.1,
-            kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes
-        );
+            kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes);
 
         CFRelease (paths);
         CFRelease (path);
@@ -133,9 +132,7 @@ private:
             l->fileChanged (file, event);
     }
 
-    static void callback (ConstFSEventStreamRef, void* info, size_t numEvents,
-                          void* eventPaths, const FSEventStreamEventFlags* flags,
-                          const FSEventStreamEventId*)
+    static void callback (ConstFSEventStreamRef, void* info, size_t numEvents, void* eventPaths, const FSEventStreamEventFlags* flags, const FSEventStreamEventId*)
     {
         auto* self = static_cast<Impl*> (info);
         CFArrayRef paths = static_cast<CFArrayRef> (eventPaths);
@@ -184,7 +181,8 @@ public:
         if (inotifyFd >= 0)
         {
             running = true;
-            watchThread = std::thread ([this] { threadFunc(); });
+            watchThread = std::thread ([this]
+                                       { threadFunc(); });
         }
     }
 
@@ -219,8 +217,7 @@ public:
         if (inotifyFd < 0)
             return;
 
-        int wd = inotify_add_watch (inotifyFd, folder.c_str(),
-            IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO);
+        int wd = inotify_add_watch (inotifyFd, folder.c_str(), IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO);
 
         if (wd >= 0)
         {
@@ -377,8 +374,7 @@ public:
             nullptr,
             OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-            nullptr
-        );
+            nullptr);
 
         if (handle == INVALID_HANDLE_VALUE)
             return;
@@ -395,7 +391,8 @@ public:
             watchData[folder] = watch;
             folders.push_back (folder);
 
-            watch->thread = std::thread ([watch] {
+            watch->thread = std::thread ([watch]
+                                         {
                 while (watch->running)
                 {
                     DWORD result = WaitForSingleObject (watch->overlapped.hEvent, 100);
@@ -410,8 +407,7 @@ public:
                                 watch->owner->startWatch (watch.get());
                         }
                     }
-                }
-            });
+                } });
         }
         else
         {
@@ -484,7 +480,7 @@ private:
         std::string folder;
         HANDLE handle = INVALID_HANDLE_VALUE;
         OVERLAPPED overlapped = {};
-        alignas(DWORD) char buffer[32768];
+        alignas (DWORD) char buffer[32768];
         std::atomic<bool> running { false };
         Impl* owner = nullptr;
         std::thread thread;
@@ -493,16 +489,15 @@ private:
     bool startWatch (WatchData* watch)
     {
         return ReadDirectoryChangesW (
-            watch->handle,
-            watch->buffer,
-            sizeof (watch->buffer),
-            TRUE,
-            FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME |
-            FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_CREATION,
-            nullptr,
-            &watch->overlapped,
-            nullptr
-        ) != 0;
+                   watch->handle,
+                   watch->buffer,
+                   sizeof (watch->buffer),
+                   TRUE,
+                   FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_CREATION,
+                   nullptr,
+                   &watch->overlapped,
+                   nullptr)
+               != 0;
     }
 
     void processEvents (WatchData* watch, DWORD bytesTransferred)
@@ -515,21 +510,25 @@ private:
         {
             auto* info = reinterpret_cast<FILE_NOTIFY_INFORMATION*> (ptr);
 
-            int len = WideCharToMultiByte (CP_UTF8, 0, info->FileName,
-                info->FileNameLength / sizeof (WCHAR), nullptr, 0, nullptr, nullptr);
+            int len = WideCharToMultiByte (CP_UTF8, 0, info->FileName, info->FileNameLength / sizeof (WCHAR), nullptr, 0, nullptr, nullptr);
             std::string filename (len, '\0');
-            WideCharToMultiByte (CP_UTF8, 0, info->FileName,
-                info->FileNameLength / sizeof (WCHAR), &filename[0], len, nullptr, nullptr);
+            WideCharToMultiByte (CP_UTF8, 0, info->FileName, info->FileNameLength / sizeof (WCHAR), &filename[0], len, nullptr, nullptr);
 
             std::string fullPath = watch->folder + "\\" + filename;
 
             FileSystemWatcher::Event event = FileSystemWatcher::Event::fileModified;
             switch (info->Action)
             {
-                case FILE_ACTION_ADDED:            event = FileSystemWatcher::Event::fileCreated; break;
-                case FILE_ACTION_REMOVED:          event = FileSystemWatcher::Event::fileDeleted; break;
+                case FILE_ACTION_ADDED:
+                    event = FileSystemWatcher::Event::fileCreated;
+                    break;
+                case FILE_ACTION_REMOVED:
+                    event = FileSystemWatcher::Event::fileDeleted;
+                    break;
                 case FILE_ACTION_RENAMED_OLD_NAME:
-                case FILE_ACTION_RENAMED_NEW_NAME: event = FileSystemWatcher::Event::fileRenamed; break;
+                case FILE_ACTION_RENAMED_NEW_NAME:
+                    event = FileSystemWatcher::Event::fileRenamed;
+                    break;
             }
 
             notifyFileChanged (fullPath, event);

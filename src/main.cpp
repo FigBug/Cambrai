@@ -19,7 +19,7 @@ int runGame()
     return 0;
 }
 
-#if !defined(_WIN32)
+#if ! defined(_WIN32)
 
 int main (int argc, char* argv[])
 {

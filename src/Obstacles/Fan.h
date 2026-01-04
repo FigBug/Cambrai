@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
 #include "../Tank.h"
+#include "Obstacle.h"
 
 class Fan : public Obstacle
 {
@@ -23,7 +23,7 @@ public:
 
     void update (float dt, const std::vector<Tank*>&, float, float) override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         // Animate fan blades
@@ -46,7 +46,7 @@ public:
 private:
     Vec2 calculatePushForceAtPosition (Vec2 targetPos, float force) const
     {
-        if (!alive)
+        if (! alive)
             return { 0, 0 };
 
         Vec2 fanDir = Vec2::fromAngle (angle);
@@ -58,7 +58,7 @@ private:
 
         // Check if target is within the fan's cone
         float dotProduct = toTarget.normalized().dot (fanDir);
-        if (dotProduct < 0.3f)  // ~72 degree cone
+        if (dotProduct < 0.3f) // ~72 degree cone
             return { 0, 0 };
 
         // Check lateral distance from fan centerline
@@ -77,7 +77,6 @@ private:
     }
 
 public:
-
     ShellHitResult checkShellCollision (const Shell&, Vec2&, Vec2&) const override
     {
         // Shells pass through fans
@@ -97,7 +96,7 @@ public:
 
     void draw (Renderer& renderer) const override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         Vec2 fanDir = Vec2::fromAngle (angle);

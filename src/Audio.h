@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Config.h"
+#include <random>
 #include <raylib.h>
 #include <string>
-#include <random>
 
 class Audio
 {
@@ -56,6 +56,6 @@ private:
     float currentEngineVolume = 0.0f;
 
     // Master volume (0.0 to 1.0)
-    int masterVolumeLevel = 5;  // 0-10 scale
-    float masterVolume = 0.5f;  // 0.0-1.0 scale
+    int masterVolumeLevel = 5; // 0-10 scale
+    float masterVolume = 0.5f; // 0.0-1.0 scale
 };

@@ -3,10 +3,10 @@
 #include "../Config.h"
 #include "../Shell.h"
 #include "../Vec2.h"
-#include <raylib.h>
 #include <array>
 #include <cmath>
 #include <memory>
+#include <raylib.h>
 #include <vector>
 
 class Tank;
@@ -34,7 +34,7 @@ enum class ShellHitResult
     Miss,
     Destroyed,
     Reflected,
-    Ricochet  // Splits into multiple shells
+    Ricochet // Splits into multiple shells
 };
 
 class Obstacle
@@ -58,7 +58,7 @@ public:
     {
         int playerIndex = -1;
         int scoreToAdd = 0;
-        float healthPercent = 0;  // 0.5 = heal 50%
+        float healthPercent = 0; // 0.5 = heal 50%
     };
     virtual CollectionEffect consumeCollectionEffect() { return {}; }
 
@@ -78,7 +78,7 @@ public:
     float getHealth() const { return health; }
     virtual float getMaxHealth() const { return 9999.0f; }
     bool isAlive() const { return alive; }
-    virtual bool isArmed() const { return false; }  // For mines
+    virtual bool isArmed() const { return false; } // For mines
 
     virtual void takeDamage (float damage)
     {
@@ -133,8 +133,7 @@ protected:
         float d3 = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
         float d4 = (p2.x - p1.x) * (p4.y - p1.y) - (p2.y - p1.y) * (p4.x - p1.x);
 
-        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-            ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
+        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
         {
             float t = d1 / (d1 - d2);
             intersection.x = p1.x + t * (p2.x - p1.x);
@@ -189,8 +188,7 @@ public:
         auto corners = getCorners();
         for (const auto& corner : corners)
         {
-            if (corner.x < margin || corner.x > arenaWidth - margin ||
-                corner.y < margin || corner.y > arenaHeight - margin)
+            if (corner.x < margin || corner.x > arenaWidth - margin || corner.y < margin || corner.y > arenaHeight - margin)
                 return false;
         }
         return checkCommonPlacement (obstacles, tanks);

@@ -2,8 +2,7 @@
 #include <cmath>
 
 Shell::Shell (Vec2 startPos, Vec2 vel, int owner, float range, float dmg)
-    : position (startPos), previousPosition (startPos), startPosition (startPos),
-      velocity (vel), ownerIndex (owner), maxRange (range), damage (dmg)
+    : position (startPos), previousPosition (startPos), startPosition (startPos), velocity (vel), ownerIndex (owner), maxRange (range), damage (dmg)
 {
 }
 

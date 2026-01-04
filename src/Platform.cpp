@@ -3,11 +3,11 @@
 #include <sys/stat.h>
 
 #if defined(_WIN32)
-#include <windows.h>
 #include <shlobj.h>
+#include <windows.h>
 #else
-#include <unistd.h>
 #include <pwd.h>
+#include <unistd.h>
 #endif
 
 namespace Platform
@@ -27,11 +27,11 @@ namespace
 
     bool createDirectory (const std::string& path)
     {
-       #if defined(_WIN32)
+#if defined(_WIN32)
         return CreateDirectoryA (path.c_str(), nullptr) != 0 || GetLastError() == ERROR_ALREADY_EXISTS;
-       #else
+#else
         return mkdir (path.c_str(), 0755) == 0 || errno == EEXIST;
-       #endif
+#endif
     }
 
     bool createDirectoryRecursive (const std::string& path)
@@ -51,7 +51,7 @@ namespace
         return createDirectory (path);
     }
 
-   #if defined(_WIN32)
+#if defined(_WIN32)
     std::string getHomeDirectory()
     {
         char path[MAX_PATH];
@@ -65,7 +65,7 @@ namespace
 
         return "";
     }
-   #else
+#else
     std::string getHomeDirectory()
     {
         const char* home = getenv ("HOME");
@@ -78,25 +78,25 @@ namespace
 
         return "";
     }
-   #endif
-}
+#endif
+} // namespace
 
 std::string getUserDataDirectory()
 {
     std::string basePath;
 
-   #if defined(__APPLE__)
+#if defined(__APPLE__)
     basePath = getHomeDirectory() + "/Library/Application Support";
-   #elif defined(_WIN32)
+#elif defined(_WIN32)
     basePath = getHomeDirectory();
-   #elif defined(__linux__)
+#elif defined(__linux__)
     // Follow XDG Base Directory spec
     const char* xdgData = getenv ("XDG_DATA_HOME");
     if (xdgData && xdgData[0] != '\0')
         basePath = std::string (xdgData);
     else
         basePath = getHomeDirectory() + "/.local/share";
-   #endif
+#endif
 
     if (basePath.empty())
         return "";
@@ -109,4 +109,4 @@ std::string getUserDataDirectory()
     return fullPath;
 }
 
-}
+} // namespace Platform

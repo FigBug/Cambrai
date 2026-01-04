@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
 #include "../Tank.h"
+#include "Obstacle.h"
 
 class AutoTurret : public Obstacle
 {
@@ -11,7 +11,7 @@ public:
         : Obstacle (position, angle, ownerIndex)
     {
         health = config.turretHealth;
-        reloadTimer = config.turretFireInterval;  // Start loaded
+        reloadTimer = config.turretFireInterval; // Start loaded
     }
 
     ObstacleType getType() const override { return ObstacleType::AutoTurret; }
@@ -24,7 +24,7 @@ public:
 
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         reloadTimer += dt;
@@ -32,7 +32,7 @@ public:
             reloadTimer = config.turretFireInterval;
 
         Tank* target = findNearestEnemy (tanks);
-        if (!target)
+        if (! target)
             return;
 
         // Rotate turret toward target
@@ -79,7 +79,7 @@ public:
 
     ShellHitResult checkShellCollision (const Shell& shell, Vec2& collisionPoint, Vec2& normal) const override
     {
-        if (!alive)
+        if (! alive)
             return ShellHitResult::Miss;
 
         if (checkCircleCollision (shell, 15.0f, collisionPoint, normal))
@@ -90,7 +90,7 @@ public:
 
     bool checkTankCollision (const Tank& tank, Vec2& pushDirection, float& pushDistance) override
     {
-        if (!alive)
+        if (! alive)
             return false;
 
         return checkCircleTankCollision (tank, 15.0f, pushDirection, pushDistance);
@@ -142,7 +142,7 @@ private:
 
         for (Tank* tank : tanks)
         {
-            if (!tank || !tank->isAlive())
+            if (! tank || ! tank->isAlive())
                 continue;
 
             float dist = (tank->getPosition() - position).length();

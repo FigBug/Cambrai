@@ -137,7 +137,7 @@ void Renderer::drawTank (const Tank& tank)
     drawFilledRotatedRect (barrelCenter, barrelLength, barrelWidth, worldTurretAngle, barrelColor);
 
     // Reload indicator at barrel base
-    if (tank.isReloaded() && !tank.isDestroying())
+    if (tank.isReloaded() && ! tank.isDestroying())
     {
         Color readyColor = config.colorReloadReady;
         readyColor.a = tankColor.a;
@@ -358,7 +358,7 @@ void Renderer::drawObstaclePreview (const Obstacle& obstacle, bool valid)
 
 void Renderer::drawPit (const Obstacle& pit)
 {
-    if (pit.getType() != ObstacleType::Pit || !pit.isAlive())
+    if (pit.getType() != ObstacleType::Pit || ! pit.isAlive())
         return;
 
     Vec2 pos = pit.getPosition();
@@ -418,7 +418,7 @@ void Renderer::drawTankHUD (const Tank& tank, int slot, int totalSlots, float sc
     // Throttle bar
     float throttleY = y + 22;
     drawFilledRect ({ barX, throttleY }, barWidth, barHeight, barBg);
-    float throttle = tank.getThrottle();  // -1 to 1
+    float throttle = tank.getThrottle(); // -1 to 1
     float throttlePct = std::abs (throttle);
     Color throttleColor = throttle >= 0 ? Color { 100, 200, 100, a } : Color { 200, 150, 100, a };
     float throttleBarWidth = barWidth * throttlePct;
@@ -447,8 +447,7 @@ void Renderer::drawOval (Vec2 center, float width, float height, float angle, Co
         float rx2 = x2 * cosA - y2 * sinA;
         float ry2 = x2 * sinA + y2 * cosA;
 
-        DrawLine ((int) (center.x + rx1), (int) (center.y + ry1),
-                  (int) (center.x + rx2), (int) (center.y + ry2), color);
+        DrawLine ((int) (center.x + rx1), (int) (center.y + ry1), (int) (center.x + rx2), (int) (center.y + ry2), color);
     }
 }
 
@@ -598,46 +597,86 @@ static const uint8_t* getGlyph (unsigned char c)
 
     switch (c)
     {
-        case '0': return g0;
-        case '1': return g1;
-        case '2': return g2;
-        case '3': return g3;
-        case '4': return g4;
-        case '5': return g5;
-        case '6': return g6;
-        case '7': return g7;
-        case '8': return g8;
-        case '9': return g9;
-        case 'A': return gA;
-        case 'B': return gB;
-        case 'C': return gC;
-        case 'D': return gD;
-        case 'E': return gE;
-        case 'F': return gF;
-        case 'G': return gG;
-        case 'H': return gH;
-        case 'I': return gI;
-        case 'J': return gJ;
-        case 'K': return gK;
-        case 'L': return gL;
-        case 'M': return gM;
-        case 'N': return gN;
-        case 'O': return gO;
-        case 'P': return gP;
-        case 'Q': return gQ;
-        case 'R': return gR;
-        case 'S': return gS;
-        case 'T': return gT;
-        case 'U': return gU;
-        case 'V': return gV;
-        case 'W': return gW;
-        case 'X': return gX;
-        case 'Y': return gY;
-        case 'Z': return gZ;
-        case '!': return gExclaim;
-        case ':': return gColon;
-        case '-': return gDash;
-        default: return empty;
+        case '0':
+            return g0;
+        case '1':
+            return g1;
+        case '2':
+            return g2;
+        case '3':
+            return g3;
+        case '4':
+            return g4;
+        case '5':
+            return g5;
+        case '6':
+            return g6;
+        case '7':
+            return g7;
+        case '8':
+            return g8;
+        case '9':
+            return g9;
+        case 'A':
+            return gA;
+        case 'B':
+            return gB;
+        case 'C':
+            return gC;
+        case 'D':
+            return gD;
+        case 'E':
+            return gE;
+        case 'F':
+            return gF;
+        case 'G':
+            return gG;
+        case 'H':
+            return gH;
+        case 'I':
+            return gI;
+        case 'J':
+            return gJ;
+        case 'K':
+            return gK;
+        case 'L':
+            return gL;
+        case 'M':
+            return gM;
+        case 'N':
+            return gN;
+        case 'O':
+            return gO;
+        case 'P':
+            return gP;
+        case 'Q':
+            return gQ;
+        case 'R':
+            return gR;
+        case 'S':
+            return gS;
+        case 'T':
+            return gT;
+        case 'U':
+            return gU;
+        case 'V':
+            return gV;
+        case 'W':
+            return gW;
+        case 'X':
+            return gX;
+        case 'Y':
+            return gY;
+        case 'Z':
+            return gZ;
+        case '!':
+            return gExclaim;
+        case ':':
+            return gColon;
+        case '-':
+            return gDash;
+        default:
+            return empty;
     }
 }
 

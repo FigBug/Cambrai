@@ -3,8 +3,8 @@
 #include "Config.h"
 #include "Shell.h"
 #include "Vec2.h"
-#include <raylib.h>
 #include <array>
+#include <raylib.h>
 #include <vector>
 
 struct Smoke
@@ -13,7 +13,7 @@ struct Smoke
     float radius;
     float alpha;
     float fadeRate;
-    Vec2 driftOffset;  // Random drift delta from wind direction
+    Vec2 driftOffset; // Random drift delta from wind direction
 };
 
 struct TrackMark
@@ -30,39 +30,39 @@ public:
 
     void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl = false, float fireInterval = 7.0f);
 
-    Vec2 getPosition() const                        { return position; }
-    float getAngle() const                          { return angle; }
-    float getTurretAngle() const                    { return turretAngle; }
-    float getSize() const                           { return size; }
-    float getMaxSpeed() const                       { return config.tankMaxSpeed; }
-    int getPlayerIndex() const                      { return playerIndex; }
-    Vec2 getCrosshairPosition() const               { return position + crosshairOffset; }
+    Vec2 getPosition() const { return position; }
+    float getAngle() const { return angle; }
+    float getTurretAngle() const { return turretAngle; }
+    float getSize() const { return size; }
+    float getMaxSpeed() const { return config.tankMaxSpeed; }
+    int getPlayerIndex() const { return playerIndex; }
+    Vec2 getCrosshairPosition() const { return position + crosshairOffset; }
     void setCrosshairPosition (Vec2 worldPos);
-    const std::vector<Smoke>& getSmoke() const      { return smoke; }
+    const std::vector<Smoke>& getSmoke() const { return smoke; }
     const std::vector<TrackMark>& getTrackMarks() const { return trackMarks; }
-    float getDamagePercent() const                  { return 1.0f - (health / config.tankMaxHealth); }
-    std::vector<Shell>& getPendingShells()          { return pendingShells; }
+    float getDamagePercent() const { return 1.0f - (health / config.tankMaxHealth); }
+    std::vector<Shell>& getPendingShells() { return pendingShells; }
     Color getColor() const;
 
     // Health system
-    float getHealth() const         { return health; }
-    float getMaxHealth() const      { return config.tankMaxHealth; }
-    bool isAlive() const            { return health > 0; }
-    bool isVisible() const          { return isAlive() || isDestroying(); }
-    bool isDestroying() const       { return destroying && destroyTimer < config.tankDestroyDuration; }
-    bool isFullyDestroyed() const   { return destroying && destroyTimer >= config.tankDestroyDuration; }
+    float getHealth() const { return health; }
+    float getMaxHealth() const { return config.tankMaxHealth; }
+    bool isAlive() const { return health > 0; }
+    bool isVisible() const { return isAlive() || isDestroying(); }
+    bool isDestroying() const { return destroying && destroyTimer < config.tankDestroyDuration; }
+    bool isFullyDestroyed() const { return destroying && destroyTimer >= config.tankDestroyDuration; }
     float getDestroyProgress() const { return destroying ? destroyTimer / config.tankDestroyDuration : 0.0f; }
     void takeDamage (float damage, int attackerIndex = -1);
-    void heal (float percent);      // Heal by percentage of max health (0.0 to 1.0)
-    int getKillerIndex() const      { return killerIndex; }
+    void heal (float percent); // Heal by percentage of max health (0.0 to 1.0)
+    int getKillerIndex() const { return killerIndex; }
 
     // Pit trap
-    bool isTrapped() const          { return trapTimer > 0.0f; }
+    bool isTrapped() const { return trapTimer > 0.0f; }
     float getTrapTimeRemaining() const { return trapTimer; }
     void trapInPit (float duration);
 
     // Portal/Pit cooldown
-    bool canUseTeleporter() const   { return teleportCooldown <= 0.0f; }
+    bool canUseTeleporter() const { return teleportCooldown <= 0.0f; }
     void startTeleportCooldown (float duration);
     void teleportTo (Vec2 newPosition);
 
@@ -70,38 +70,38 @@ public:
     void applyExternalForce (Vec2 force);
 
     // Collision
-    Vec2 getVelocity() const        { return velocity; }
-    float getSpeed() const          { return velocity.length(); }
+    Vec2 getVelocity() const { return velocity; }
+    float getSpeed() const { return velocity.length(); }
     void applyCollision (Vec2 pushDirection, float pushDistance, Vec2 impulse);
     std::array<Vec2, 4> getCorners() const;
 
     // HUD info
-    float getThrottle() const       { return throttle; }
+    float getThrottle() const { return throttle; }
     float getReloadProgress() const { return reloadTimer / currentFireInterval; }
-    bool isReadyToFire() const      { return reloadTimer >= currentFireInterval && isTurretOnTarget(); }
-    bool isReloaded() const         { return reloadTimer >= currentFireInterval; }
+    bool isReadyToFire() const { return reloadTimer >= currentFireInterval && isTurretOnTarget(); }
+    bool isReloaded() const { return reloadTimer >= currentFireInterval; }
     bool isTurretOnTarget() const;
 
 private:
     int playerIndex;
-    int killerIndex = -1;           // Who killed this tank
+    int killerIndex = -1; // Who killed this tank
     Vec2 position;
     Vec2 velocity;
-    float angle = 0.0f;             // Tank body angle (radians)
-    float turretAngle = 0.0f;       // Turret angle relative to body
+    float angle = 0.0f; // Tank body angle (radians)
+    float turretAngle = 0.0f; // Turret angle relative to body
     float size;
 
-    float throttle = 0.0f;          // -1 to 1 (current throttle)
-    float reloadTimer = 0.0f;       // Time since last shot
+    float throttle = 0.0f; // -1 to 1 (current throttle)
+    float reloadTimer = 0.0f; // Time since last shot
     float currentFireInterval = 7.0f; // Current fire interval (depends on aim mode)
 
-    Vec2 crosshairOffset;           // Offset from tank position
+    Vec2 crosshairOffset; // Offset from tank position
 
     std::vector<Smoke> smoke;
     float smokeSpawnTimer = 0.0f;
 
     std::vector<TrackMark> trackMarks;
-    float trackMarkDistance = 0.0f;  // Distance traveled since last track mark
+    float trackMarkDistance = 0.0f; // Distance traveled since last track mark
 
     // Health
     float health = config.tankMaxHealth;

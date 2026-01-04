@@ -1,8 +1,8 @@
 #include "Config.h"
 #include "Platform.h"
 
-#include <nlohmann/json.hpp>
 #include <fstream>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
@@ -11,55 +11,55 @@ Config config;
 
 namespace
 {
-    json colorToJson (Color c)
-    {
-        char hex[10];
-        snprintf (hex, sizeof (hex), "#%02X%02X%02X%02X", c.r, c.g, c.b, c.a);
-        return std::string (hex);
-    }
-
-    Color jsonToColor (const json& j, Color defaultColor)
-    {
-        if (! j.is_string())
-            return defaultColor;
-
-        std::string s = j.get<std::string>();
-        if (s.empty() || s[0] != '#' || (s.length() != 7 && s.length() != 9))
-            return defaultColor;
-
-        unsigned int r, g, b, a = 255;
-        if (s.length() == 7)
-        {
-            if (sscanf (s.c_str(), "#%02X%02X%02X", &r, &g, &b) != 3)
-                return defaultColor;
-        }
-        else
-        {
-            if (sscanf (s.c_str(), "#%02X%02X%02X%02X", &r, &g, &b, &a) != 4)
-                return defaultColor;
-        }
-
-        return {
-            static_cast<unsigned char> (r),
-            static_cast<unsigned char> (g),
-            static_cast<unsigned char> (b),
-            static_cast<unsigned char> (a)
-        };
-    }
-
-    template <typename T>
-    void loadValue (const json& j, const char* key, T& value)
-    {
-        if (j.contains (key))
-            value = j[key].get<T>();
-    }
-
-    void loadColor (const json& j, const char* key, Color& value)
-    {
-        if (j.contains (key))
-            value = jsonToColor (j[key], value);
-    }
+json colorToJson (Color c)
+{
+    char hex[10];
+    snprintf (hex, sizeof (hex), "#%02X%02X%02X%02X", c.r, c.g, c.b, c.a);
+    return std::string (hex);
 }
+
+Color jsonToColor (const json& j, Color defaultColor)
+{
+    if (! j.is_string())
+        return defaultColor;
+
+    std::string s = j.get<std::string>();
+    if (s.empty() || s[0] != '#' || (s.length() != 7 && s.length() != 9))
+        return defaultColor;
+
+    unsigned int r, g, b, a = 255;
+    if (s.length() == 7)
+    {
+        if (sscanf (s.c_str(), "#%02X%02X%02X", &r, &g, &b) != 3)
+            return defaultColor;
+    }
+    else
+    {
+        if (sscanf (s.c_str(), "#%02X%02X%02X%02X", &r, &g, &b, &a) != 4)
+            return defaultColor;
+    }
+
+    return {
+        static_cast<unsigned char> (r),
+        static_cast<unsigned char> (g),
+        static_cast<unsigned char> (b),
+        static_cast<unsigned char> (a)
+    };
+}
+
+template <typename T>
+void loadValue (const json& j, const char* key, T& value)
+{
+    if (j.contains (key))
+        value = j[key].get<T>();
+}
+
+void loadColor (const json& j, const char* key, Color& value)
+{
+    if (j.contains (key))
+        value = jsonToColor (j[key], value);
+}
+} // namespace
 
 Config::Config() = default;
 
@@ -117,7 +117,8 @@ bool Config::load()
         return true;
     }
 
-    auto getSection = [&j] (const char* name) -> const json& {
+    auto getSection = [&j] (const char* name) -> const json&
+    {
         static const json empty = json::object();
         return j.contains (name) ? j[name] : empty;
     };

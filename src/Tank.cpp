@@ -5,8 +5,7 @@
 #include <cmath>
 
 Tank::Tank (int playerIndex_, Vec2 startPos, float startAngle, float tankSize)
-    : playerIndex (playerIndex_), position (startPos), angle (startAngle),
-      turretAngle (0.0f), size (tankSize)
+    : playerIndex (playerIndex_), position (startPos), angle (startAngle), turretAngle (0.0f), size (tankSize)
 {
     crosshairOffset = Vec2::fromAngle (angle) * config.crosshairStartDistance;
     currentFireInterval = config.fireIntervalCrosshair;
@@ -65,7 +64,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     {
         velocity = { 0.0f, 0.0f };
         throttle = 0.0f;
-        externalForce = { 0, 0 };  // Clear accumulated forces so tank doesn't shoot out when released
+        externalForce = { 0, 0 }; // Clear accumulated forces so tank doesn't shoot out when released
 
         // Update crosshair offset based on aim stick
         if (aimInput.lengthSquared() > 0.01f)
@@ -85,7 +84,7 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     // Left stick Y: Adjust throttle (throttle stays when released)
     // Left stick X: Rotate tank
 
-    float throttleInput = -moveInput.y;  // Negative because stick up is negative
+    float throttleInput = -moveInput.y; // Negative because stick up is negative
     float rotateInput = moveInput.x;
 
     // Adjust throttle based on stick input
@@ -142,10 +141,10 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     if (externalForce.lengthSquared() < 0.01f)
     {
         Vec2 lateralVel = velocity - forward * velocity.dot (forward);
-        velocity = velocity - lateralVel * 0.1f;  // 10% damping per frame
+        velocity = velocity - lateralVel * 0.1f; // 10% damping per frame
     }
 
-    externalForce = { 0, 0 };  // Reset for next frame
+    externalForce = { 0, 0 }; // Reset for next frame
 
     // Update position
     position += velocity * dt;
@@ -347,7 +346,7 @@ void Tank::takeDamage (float damage, int attackerIndex)
 
 void Tank::heal (float percent)
 {
-    if (destroying || !isAlive())
+    if (destroying || ! isAlive())
         return;
 
     float healAmount = config.tankMaxHealth * percent;
@@ -390,7 +389,7 @@ std::array<Vec2, 4> Tank::getCorners() const
 
 bool Tank::fireShell()
 {
-    if (reloadTimer < currentFireInterval || !isTurretOnTarget())
+    if (reloadTimer < currentFireInterval || ! isTurretOnTarget())
         return false;
 
     // Shell fires from turret
@@ -509,7 +508,7 @@ void Tank::updateSmoke (float dt, Vec2 windDirection)
 
 void Tank::trapInPit (float duration)
 {
-    if (!isTrapped() && canUseTeleporter())
+    if (! isTrapped() && canUseTeleporter())
     {
         trapTimer = duration;
         velocity = { 0.0f, 0.0f };

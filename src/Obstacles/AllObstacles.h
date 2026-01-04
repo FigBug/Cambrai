@@ -1,18 +1,18 @@
 #pragma once
 
-#include "Obstacle.h"
-#include "SolidWall.h"
-#include "BreakableWall.h"
-#include "ReflectiveWall.h"
-#include "RicochetWall.h"
-#include "Mine.h"
 #include "AutoTurret.h"
-#include "Pit.h"
-#include "Portal.h"
-#include "Flag.h"
-#include "HealthPack.h"
+#include "BreakableWall.h"
 #include "Electromagnet.h"
 #include "Fan.h"
+#include "Flag.h"
+#include "HealthPack.h"
+#include "Mine.h"
+#include "Obstacle.h"
+#include "Pit.h"
+#include "Portal.h"
+#include "ReflectiveWall.h"
+#include "RicochetWall.h"
+#include "SolidWall.h"
 
 inline std::unique_ptr<Obstacle> createObstacle (ObstacleType type, Vec2 position, float angle, int ownerIndex)
 {

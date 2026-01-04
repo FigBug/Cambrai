@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Obstacle.h"
 #include "../Renderer.h"
 #include "../Tank.h"
+#include "Obstacle.h"
 
 class Flag : public Obstacle
 {
@@ -18,7 +18,7 @@ public:
     // Override base class collection effect
     CollectionEffect consumeCollectionEffect() override
     {
-        if (capturedBy >= 0 && !pointsAwarded)
+        if (capturedBy >= 0 && ! pointsAwarded)
         {
             pointsAwarded = true;
             return { capturedBy, config.flagPoints, 0 };
@@ -28,13 +28,13 @@ public:
 
     void update (float dt, const std::vector<Tank*>& tanks, float, float) override
     {
-        if (!alive || capturedBy >= 0)
+        if (! alive || capturedBy >= 0)
             return;
 
         // Check if any tank touches the flag
         for (Tank* tank : tanks)
         {
-            if (!tank || !tank->isAlive())
+            if (! tank || ! tank->isAlive())
                 continue;
 
             float dist = (tank->getPosition() - position).length();
@@ -66,7 +66,7 @@ public:
 
     void draw (Renderer& renderer) const override
     {
-        if (!alive)
+        if (! alive)
             return;
 
         // Flag pole
@@ -103,6 +103,6 @@ public:
     }
 
 private:
-    int capturedBy = -1;  // Player index who captured, -1 if not captured
+    int capturedBy = -1; // Player index who captured, -1 if not captured
     bool pointsAwarded = false;
 };

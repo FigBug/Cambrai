@@ -1,7 +1,7 @@
 #include "Player.h"
-#include <raylib.h>
 #include <algorithm>
 #include <cmath>
+#include <raylib.h>
 
 Player::Player (int playerIndex_)
     : playerIndex (playerIndex_)
@@ -16,7 +16,7 @@ Player::~Player()
 void Player::update()
 {
     // Check if gamepad is still available, or try to find one
-    if (gamepadId < 0 || !IsGamepadAvailable (gamepadId))
+    if (gamepadId < 0 || ! IsGamepadAvailable (gamepadId))
     {
         tryOpenGamepad();
     }
@@ -61,19 +61,17 @@ void Player::update()
     aimInput.y = applyDeadzone (rightY);
 
     // Any face button or trigger fires
-    fireInput = IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) ||  // A / Cross
+    fireInput = IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || // A / Cross
                 IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT) || // B / Circle
-                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_LEFT) ||  // X / Square
-                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_UP) ||    // Y / Triangle
-                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_1) ||
-                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_TRIGGER_1);
+                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_LEFT) || // X / Square
+                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_UP) || // Y / Triangle
+                IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_1) || IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_TRIGGER_1);
 
     // A button places obstacle during placement phase
     placeInput = IsGamepadButtonPressed (gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 
     // Bumpers rotate obstacle during placement
-    rotateInput = IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_1) ||
-                  IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_TRIGGER_1);
+    rotateInput = IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_1) || IsGamepadButtonDown (gamepadId, GAMEPAD_BUTTON_RIGHT_TRIGGER_1);
 
     // D-pad navigation for selection grid
     navX = 0;
@@ -99,14 +97,14 @@ void Player::updateKeyboardMouse()
     moveInput = { 0, 0 };
 
     if (IsKeyDown (KEY_W) || IsKeyDown (KEY_UP))
-        moveInput.y = -1.0f;  // Forward (negative Y)
+        moveInput.y = -1.0f; // Forward (negative Y)
     else if (IsKeyDown (KEY_S) || IsKeyDown (KEY_DOWN))
-        moveInput.y = 1.0f;   // Reverse
+        moveInput.y = 1.0f; // Reverse
 
     if (IsKeyDown (KEY_A) || IsKeyDown (KEY_LEFT))
-        moveInput.x = -1.0f;  // Rotate left
+        moveInput.x = -1.0f; // Rotate left
     else if (IsKeyDown (KEY_D) || IsKeyDown (KEY_RIGHT))
-        moveInput.x = 1.0f;   // Rotate right
+        moveInput.x = 1.0f; // Rotate right
 
     // Mouse position for aiming (crosshair mode)
     Vector2 mouse = GetMousePosition();
@@ -168,8 +166,7 @@ void Player::tryOpenGamepad()
             if (gamepadCount == playerIndex)
             {
                 gamepadId = i;
-                TraceLog (LOG_INFO, "Player %d connected to gamepad %d: %s",
-                          playerIndex, i, GetGamepadName (i));
+                TraceLog (LOG_INFO, "Player %d connected to gamepad %d: %s", playerIndex, i, GetGamepadName (i));
                 return;
             }
             gamepadCount++;

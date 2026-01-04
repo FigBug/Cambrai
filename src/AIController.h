@@ -13,9 +13,7 @@ class AIController
 public:
     AIController();
 
-    void update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies,
-                 const std::vector<Shell>& shells, const std::vector<std::unique_ptr<Obstacle>>& obstacles,
-                 float arenaWidth, float arenaHeight);
+    void update (float dt, const Tank& myTank, const std::vector<const Tank*>& enemies, const std::vector<Shell>& shells, const std::vector<std::unique_ptr<Obstacle>>& obstacles, float arenaWidth, float arenaHeight);
 
     Vec2 getMoveInput() const { return moveInput; }
     Vec2 getAimInput() const { return aimInput; }
@@ -33,7 +31,7 @@ private:
     Vec2 wanderTarget;
     float wanderTimer = 0.0f;
 
-    float personalityFactor;  // Slight variation in behavior
+    float personalityFactor; // Slight variation in behavior
 
     void pickNewWanderTarget (float arenaWidth, float arenaHeight);
     Vec2 avoidObstacles (const Tank& myTank, const std::vector<std::unique_ptr<Obstacle>>& obstacles) const;
