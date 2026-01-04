@@ -1,3 +1,6 @@
+0.0.3
+- Fixed config
+
 0.0.2
 - Added rotation aiming mode
 - Variable player count

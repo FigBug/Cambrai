@@ -110,7 +110,7 @@ bool Config::load()
     if (j.contains ("version") && j["version"].is_string())
         fileVersion = j["version"].get<std::string>();
 
-    if (fileVersion != CONFIG_VERSION)
+    if (fileVersion != CAMBRAI_VERSION)
     {
         // Version mismatch - save new defaults and return
         save();
@@ -290,7 +290,7 @@ bool Config::save() const
 
     json j;
 
-    j["version"] = CONFIG_VERSION;
+    j["version"] = CAMBRAI_VERSION;
 
     // Tank Physics
     j["tankPhysics"] = {

@@ -10,8 +10,11 @@
 // All tweakable game constants in one place
 // =============================================================================
 
-// Increment this when config format changes to reset user settings
-constexpr const char* CONFIG_VERSION = "1.1.0";
+// Version from CMake (defined via -DCAMBRAI_VERSION)
+// Config resets when version changes
+#ifndef CAMBRAI_VERSION
+#define CAMBRAI_VERSION "0.0.0"
+#endif
 
 class Config : public FileSystemWatcher::Listener
 {
