@@ -97,8 +97,8 @@ public:
     // -------------------------------------------------------------------------
     // Smoke / Effects
     // -------------------------------------------------------------------------
-    float smokeFadeTimeMin            = 2.0f;
-    float smokeFadeTimeMax            = 4.0f;
+    float smokeFadeTimeMin            = 10.0f;
+    float smokeFadeTimeMax            = 14.0f;
     float smokeBaseSpawnInterval      = 0.1f;
     float smokeDamageMultiplier       = 3.0f;
     float smokeBaseRadius             = 3.0f;
@@ -140,6 +140,7 @@ public:
     // -------------------------------------------------------------------------
     // Audio
     // -------------------------------------------------------------------------
+    int audioMasterVolume             = 5;            // 0-10 scale
     float audioGunSilenceDuration     = 0.15f;
     float audioPitchVariation         = 0.1f;
     float audioGainVariation          = 0.1f;

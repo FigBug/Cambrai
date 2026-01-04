@@ -196,6 +196,7 @@ bool Config::load()
         loadValue (s, "smokeDamageMultiplier", smokeDamageMultiplier);
         loadValue (s, "smokeBaseRadius", smokeBaseRadius);
         loadValue (s, "smokeBaseAlpha", smokeBaseAlpha);
+        loadValue (s, "smokeWindSpeed", smokeWindSpeed);
         loadValue (s, "trackMarkFadeTime", trackMarkFadeTime);
         loadValue (s, "trackMarkSpawnDistance", trackMarkSpawnDistance);
         loadValue (s, "trackMarkWidth", trackMarkWidth);
@@ -227,6 +228,7 @@ bool Config::load()
     // Audio
     {
         const auto& s = getSection ("audio");
+        loadValue (s, "masterVolume", audioMasterVolume);
         loadValue (s, "gunSilenceDuration", audioGunSilenceDuration);
         loadValue (s, "pitchVariation", audioPitchVariation);
         loadValue (s, "gainVariation", audioGainVariation);
@@ -246,6 +248,15 @@ bool Config::load()
         loadValue (s, "pointsForSurviving", pointsForSurviving);
         loadValue (s, "pointsForKill", pointsForKill);
         loadValue (s, "stalemateTimeout", stalemateTimeout);
+    }
+
+    // Selection Phase
+    {
+        const auto& s = getSection ("selectionPhase");
+        loadValue (s, "selectionTime", selectionTime);
+        loadValue (s, "aiSelectionMinDelay", aiSelectionMinDelay);
+        loadValue (s, "aiSelectionMaxDelay", aiSelectionMaxDelay);
+        loadValue (s, "aiSelectionMoveInterval", aiSelectionMoveInterval);
     }
 
     return true;
@@ -340,6 +351,7 @@ bool Config::save() const
         { "smokeDamageMultiplier", smokeDamageMultiplier },
         { "smokeBaseRadius", smokeBaseRadius },
         { "smokeBaseAlpha", smokeBaseAlpha },
+        { "smokeWindSpeed", smokeWindSpeed },
         { "trackMarkFadeTime", trackMarkFadeTime },
         { "trackMarkSpawnDistance", trackMarkSpawnDistance },
         { "trackMarkWidth", trackMarkWidth },
@@ -368,6 +380,7 @@ bool Config::save() const
 
     // Audio
     j["audio"] = {
+        { "masterVolume", audioMasterVolume },
         { "gunSilenceDuration", audioGunSilenceDuration },
         { "pitchVariation", audioPitchVariation },
         { "gainVariation", audioGainVariation },
@@ -386,6 +399,14 @@ bool Config::save() const
         { "pointsForSurviving", pointsForSurviving },
         { "pointsForKill", pointsForKill },
         { "stalemateTimeout", stalemateTimeout }
+    };
+
+    // Selection Phase
+    j["selectionPhase"] = {
+        { "selectionTime", selectionTime },
+        { "aiSelectionMinDelay", aiSelectionMinDelay },
+        { "aiSelectionMaxDelay", aiSelectionMaxDelay },
+        { "aiSelectionMoveInterval", aiSelectionMoveInterval }
     };
 
     std::ofstream file (path);

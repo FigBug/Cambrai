@@ -132,8 +132,17 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
 
     velocity = forward * currentForwardSpeed;
 
-    // Apply external force (from electromagnet)
+    // Apply external force (from electromagnet/fan)
     velocity += externalForce * dt;
+
+    // Dampen lateral velocity when no external force is applied
+    // (tanks naturally resist sliding sideways)
+    if (externalForce.lengthSquared() < 0.01f)
+    {
+        Vec2 lateralVel = velocity - forward * velocity.dot (forward);
+        velocity = velocity - lateralVel * 0.1f;  // 10% damping per frame
+    }
+
     externalForce = { 0, 0 };  // Reset for next frame
 
     // Update position
@@ -439,11 +448,12 @@ void Tank::updateTrackMarks (float dt)
 
 void Tank::updateSmoke (float dt, Vec2 windDirection)
 {
-    // Fade existing smoke and apply wind
+    // Fade existing smoke and apply wind + individual drift
     for (auto it = smoke.begin(); it != smoke.end();)
     {
         it->alpha -= it->fadeRate * dt;
-        it->position += windDirection * config.smokeWindSpeed * dt;
+        Vec2 drift = windDirection + it->driftOffset;
+        it->position += drift * config.smokeWindSpeed * dt;
 
         if (it->alpha <= 0.0f)
             it = smoke.erase (it);
@@ -487,7 +497,10 @@ void Tank::updateSmoke (float dt, Vec2 windDirection)
             float lifetime = randomFloat (config.smokeFadeTimeMin, config.smokeFadeTimeMax);
             float fadeRate = 1.0f / lifetime;
 
-            smoke.push_back ({ spawnPos, smokeRadius, startAlpha, fadeRate });
+            // Random drift offset so each smoke particle drifts slightly differently
+            Vec2 driftOffset = { randomFloat (-0.3f, 0.3f), randomFloat (-0.3f, 0.3f) };
+
+            smoke.push_back ({ spawnPos, smokeRadius, startAlpha, fadeRate, driftOffset });
         }
     }
 }

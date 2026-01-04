@@ -115,6 +115,9 @@ bool Audio::init()
     PlayMusicStream (engineSound);
     SetMusicVolume (engineSound, 0.0f);
 
+    // Load master volume from config
+    setMasterVolume (config.audioMasterVolume);
+
     initialized = true;
     return true;
 }
@@ -220,6 +223,10 @@ void Audio::setMasterVolume (int level)
 {
     masterVolumeLevel = std::max (0, std::min (10, level));
     masterVolume = masterVolumeLevel / 10.0f;
+
+    // Save to config
+    config.audioMasterVolume = masterVolumeLevel;
+    config.save();
 }
 
 void Audio::playWithVariation (Sound& sound, float screenX, float screenWidth)

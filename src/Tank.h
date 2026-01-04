@@ -13,6 +13,7 @@ struct Smoke
     float radius;
     float alpha;
     float fadeRate;
+    Vec2 driftOffset;  // Random drift delta from wind direction
 };
 
 struct TrackMark

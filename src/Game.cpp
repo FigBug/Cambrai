@@ -118,25 +118,56 @@ void Game::update (float dt)
 
 void Game::updateTitle (float dt)
 {
-    // Adjust player count with left/right
-    bool left = IsKeyPressed (KEY_LEFT) || IsKeyPressed (KEY_A);
-    bool right = IsKeyPressed (KEY_RIGHT) || IsKeyPressed (KEY_D);
+    // Adjust player count with up/down
+    bool up = IsKeyPressed (KEY_UP) || IsKeyPressed (KEY_W);
+    bool down = IsKeyPressed (KEY_DOWN) || IsKeyPressed (KEY_S);
 
     for (int i = 0; i < 4; ++i)
     {
         if (IsGamepadAvailable (i))
         {
-            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_LEFT))
-                left = true;
-            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_RIGHT))
-                right = true;
+            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_UP))
+                up = true;
+            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_DOWN))
+                down = true;
         }
     }
 
-    if (left && numPlayers > 2)
-        numPlayers--;
-    if (right && numPlayers < 4)
+    if (up && numPlayers < 4)
         numPlayers++;
+    if (down && numPlayers > 2)
+        numPlayers--;
+
+    // Volume control with left/right
+    if (audio)
+    {
+        bool volumeDown = IsKeyPressed (KEY_LEFT) || IsKeyPressed (KEY_A);
+        bool volumeUp = IsKeyPressed (KEY_RIGHT) || IsKeyPressed (KEY_D);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            if (IsGamepadAvailable (i))
+            {
+                if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_LEFT))
+                    volumeDown = true;
+                if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_LEFT_FACE_RIGHT))
+                    volumeUp = true;
+            }
+        }
+
+        if (volumeDown)
+        {
+            int level = audio->getMasterVolumeLevel();
+            if (level > 0)
+                audio->setMasterVolume (level - 1);
+        }
+        if (volumeUp)
+        {
+            int level = audio->getMasterVolumeLevel();
+            if (level < 10)
+                audio->setMasterVolume (level + 1);
+        }
+    }
 
     if (anyButtonPressed())
     {
@@ -1369,19 +1400,19 @@ void Game::renderTitle()
     float w, h;
     getWindowSize (w, h);
 
-    renderer->drawTextCentered ("CAMBRAI", { w / 2.0f, h / 3.0f }, 8.0f, config.colorTitle);
+    renderer->drawTextCentered ("CAMBRAI", { w / 2.0f, h * 0.20f }, 8.0f, config.colorTitle);
+
+    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 5", { w / 2.0f, h * 0.38f }, 2.5f, config.colorSubtitle);
 
     // Player count selector
-    std::string playerCountText = "< " + std::to_string (numPlayers) + " PLAYERS >";
-    renderer->drawTextCentered (playerCountText, { w / 2.0f, h * 0.48f }, 3.0f, config.colorSubtitle);
-    renderer->drawTextCentered ("USE LEFT/RIGHT TO CHANGE", { w / 2.0f, h * 0.54f }, 1.5f, config.colorGreySubtle);
-
-    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 10", { w / 2.0f, h * 0.62f }, 2.5f, config.colorSubtitle);
+    std::string playerCountText = std::to_string (numPlayers) + " PLAYERS";
+    renderer->drawTextCentered (playerCountText, { w / 2.0f, h * 0.46f }, 3.0f, config.colorSubtitle);
+    renderer->drawTextCentered ("UP/DOWN TO CHANGE", { w / 2.0f, h * 0.51f }, 1.5f, config.colorGreySubtle);
 
     // Player slots - only show numPlayers slots
     float slotSpacing = 80.0f;
     float startX = w / 2.0f - (numPlayers - 1) * 0.5f * slotSpacing;
-    float slotY = h * 0.72f;
+    float slotY = h * 0.62f;
 
     for (int i = 0; i < numPlayers; ++i)
     {
@@ -1408,7 +1439,18 @@ void Game::renderTitle()
         }
     }
 
-    renderer->drawTextCentered ("CLICK OR PRESS ANY BUTTON TO START", { w / 2.0f, h * 0.9f }, 2.0f, config.colorInstruction);
+    // Volume control
+    if (audio)
+    {
+        int level = audio->getMasterVolumeLevel();
+        std::string volText = "VOLUME  ";
+        for (int i = 0; i < 10; ++i)
+            volText += (i < level) ? "O" : "-";
+        renderer->drawTextCentered (volText, { w / 2.0f, h * 0.76f }, 2.0f, config.colorSubtitle);
+        renderer->drawTextCentered ("LEFT/RIGHT TO ADJUST", { w / 2.0f, h * 0.80f }, 1.5f, config.colorGreySubtle);
+    }
+
+    renderer->drawTextCentered ("PRESS ANY BUTTON TO START", { w / 2.0f, h * 0.90f }, 2.0f, config.colorInstruction);
 }
 
 void Game::renderPlacement()
