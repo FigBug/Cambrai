@@ -222,7 +222,11 @@ void Audio::setEngineVolume (float volume)
 void Audio::setMasterVolume (int level)
 {
     masterVolumeLevel = std::max (0, std::min (10, level));
-    masterVolume = masterVolumeLevel / 10.0f;
+
+    // Convert to logarithmic scale for perceptual loudness
+    // Using x^2 curve: 0->0, 5->0.25, 10->1.0
+    float normalized = masterVolumeLevel / 10.0f;
+    masterVolume = normalized * normalized;
 
     // Save to config
     config.audioMasterVolume = masterVolumeLevel;

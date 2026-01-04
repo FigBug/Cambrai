@@ -142,7 +142,8 @@ bool Config::load()
     // Shells
     {
         const auto& s = getSection ("shells");
-        loadValue (s, "fireInterval", fireInterval);
+        loadValue (s, "fireIntervalCrosshair", fireIntervalCrosshair);
+        loadValue (s, "fireIntervalRotation", fireIntervalRotation);
         loadValue (s, "speed", shellSpeed);
         loadValue (s, "radius", shellRadius);
         loadValue (s, "damageRadius", shellDamageRadius);
@@ -225,6 +226,13 @@ bool Config::load()
         loadValue (s, "placementMargin", aiPlacementMargin);
     }
 
+    // User Preferences
+    {
+        const auto& s = getSection ("userPreferences");
+        loadValue (s, "numPlayers", numPlayers);
+        loadValue (s, "aimMode", aimMode);
+    }
+
     // Audio
     {
         const auto& s = getSection ("audio");
@@ -300,7 +308,8 @@ bool Config::save() const
 
     // Shells
     j["shells"] = {
-        { "fireInterval", fireInterval },
+        { "fireIntervalCrosshair", fireIntervalCrosshair },
+        { "fireIntervalRotation", fireIntervalRotation },
         { "speed", shellSpeed },
         { "radius", shellRadius },
         { "damageRadius", shellDamageRadius },
@@ -376,6 +385,12 @@ bool Config::save() const
         { "fireDistance", aiFireDistance },
         { "crosshairTolerance", aiCrosshairTolerance },
         { "placementMargin", aiPlacementMargin }
+    };
+
+    // User Preferences
+    j["userPreferences"] = {
+        { "numPlayers", numPlayers },
+        { "aimMode", aimMode }
     };
 
     // Audio

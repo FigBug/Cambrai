@@ -52,7 +52,8 @@ public:
     // -------------------------------------------------------------------------
     // Shells / Firing
     // -------------------------------------------------------------------------
-    float fireInterval                = 7.0f;       // Seconds between shots
+    float fireIntervalCrosshair       = 7.0f;       // Seconds between shots (crosshair aim mode)
+    float fireIntervalRotation        = 3.0f;       // Seconds between shots (rotation aim mode)
     float shellSpeed                  = 400.0f;     // Pixels per second
     float shellRadius                 = 4.0f;
     float shellDamageRadius           = 15.0f;      // Splash damage radius
@@ -99,9 +100,9 @@ public:
     // -------------------------------------------------------------------------
     float smokeFadeTimeMin            = 10.0f;
     float smokeFadeTimeMax            = 14.0f;
-    float smokeBaseSpawnInterval      = 0.1f;
+    float smokeBaseSpawnInterval      = 0.2f;
     float smokeDamageMultiplier       = 3.0f;
-    float smokeBaseRadius             = 3.0f;
+    float smokeBaseRadius             = 1.5f;
     float smokeBaseAlpha              = 0.5f;
     float smokeWindSpeed              = 30.0f;        // How fast wind blows smoke
 
@@ -136,6 +137,12 @@ public:
     float aiFireDistance              = 350.0f;
     float aiCrosshairTolerance        = 20.0f;
     float aiPlacementMargin           = 150.0f;     // How far from edges AI places objects
+
+    // -------------------------------------------------------------------------
+    // User Preferences
+    // -------------------------------------------------------------------------
+    int numPlayers                    = 4;            // 2-4 players
+    int aimMode                       = 0;            // 0 = Crosshair, 1 = Rotation
 
     // -------------------------------------------------------------------------
     // Audio

@@ -28,7 +28,7 @@ class Tank
 public:
     Tank (int playerIndex, Vec2 startPos, float startAngle, float tankSize);
 
-    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl = false);
+    void update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl = false, float fireInterval = 7.0f);
 
     Vec2 getPosition() const                        { return position; }
     float getAngle() const                          { return angle; }
@@ -77,8 +77,9 @@ public:
 
     // HUD info
     float getThrottle() const       { return throttle; }
-    float getReloadProgress() const { return reloadTimer / config.fireInterval; }
-    bool isReadyToFire() const      { return reloadTimer >= config.fireInterval && isTurretOnTarget(); }
+    float getReloadProgress() const { return reloadTimer / currentFireInterval; }
+    bool isReadyToFire() const      { return reloadTimer >= currentFireInterval && isTurretOnTarget(); }
+    bool isReloaded() const         { return reloadTimer >= currentFireInterval; }
     bool isTurretOnTarget() const;
 
 private:
@@ -92,6 +93,7 @@ private:
 
     float throttle = 0.0f;          // -1 to 1 (current throttle)
     float reloadTimer = 0.0f;       // Time since last shot
+    float currentFireInterval = 7.0f; // Current fire interval (depends on aim mode)
 
     Vec2 crosshairOffset;           // Offset from tank position
 

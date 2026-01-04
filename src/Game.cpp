@@ -32,6 +32,10 @@ bool Game::init()
         aiControllers[i] = std::make_unique<AIController>();
     }
 
+    // Load user preferences from config
+    numPlayers = std::clamp (config.numPlayers, 2, 4);
+    aimMode = (config.aimMode == 0) ? AimMode::Crosshair : AimMode::Rotation;
+
     state = GameState::Title;
     running = true;
     lastFrameTime = GetTime();
@@ -134,9 +138,17 @@ void Game::updateTitle (float dt)
     }
 
     if (up && numPlayers < 4)
+    {
         numPlayers++;
+        config.numPlayers = numPlayers;
+        config.save();
+    }
     if (down && numPlayers > 2)
+    {
         numPlayers--;
+        config.numPlayers = numPlayers;
+        config.save();
+    }
 
     // Volume control with left/right
     if (audio)
@@ -167,6 +179,23 @@ void Game::updateTitle (float dt)
             if (level < 10)
                 audio->setMasterVolume (level + 1);
         }
+    }
+
+    // Aim mode toggle with Tab or R3
+    bool toggleAim = IsKeyPressed (KEY_TAB);
+    for (int i = 0; i < 4; ++i)
+    {
+        if (IsGamepadAvailable (i))
+        {
+            if (IsGamepadButtonPressed (i, GAMEPAD_BUTTON_RIGHT_THUMB))
+                toggleAim = true;
+        }
+    }
+    if (toggleAim)
+    {
+        aimMode = (aimMode == AimMode::Crosshair) ? AimMode::Rotation : AimMode::Crosshair;
+        config.aimMode = (aimMode == AimMode::Crosshair) ? 0 : 1;
+        config.save();
     }
 
     if (anyButtonPressed())
@@ -207,15 +236,15 @@ ObstacleType Game::indexToObstacleType (int index) const
         case 0: return ObstacleType::SolidWall;
         case 1: return ObstacleType::BreakableWall;
         case 2: return ObstacleType::ReflectiveWall;
-        case 3: return ObstacleType::Mine;
-        case 4: return ObstacleType::AutoTurret;
-        case 5: return ObstacleType::Pit;
-        case 6: return ObstacleType::Portal;
-        case 7: return ObstacleType::Flag;
-        case 8: return ObstacleType::HealthPack;
-        case 9: return ObstacleType::Electromagnet;
-        case 10: return ObstacleType::Fan;
-        case 11: return ObstacleType::RicochetWall;
+        case 3: return ObstacleType::RicochetWall;
+        case 4: return ObstacleType::Mine;
+        case 5: return ObstacleType::AutoTurret;
+        case 6: return ObstacleType::Pit;
+        case 7: return ObstacleType::Portal;
+        case 8: return ObstacleType::Flag;
+        case 9: return ObstacleType::HealthPack;
+        case 10: return ObstacleType::Electromagnet;
+        case 11: return ObstacleType::Fan;
         default: return ObstacleType::SolidWall;
     }
 }
@@ -578,7 +607,7 @@ void Game::renderSelection()
             statusText = "SELECTING...";
 
         renderer->drawTextCentered ("P" + std::to_string (i + 1), { pos.x, pos.y - 15 }, 2.0f, color);
-        renderer->drawTextCentered (statusText, { pos.x, pos.y + 10 }, 1.5f, hasSelected[i] ? color : config.colorGreySubtle);
+        renderer->drawTextCentered (statusText, { pos.x, pos.y + 10 }, 1.5f, hasSelected[i] ? color : config.colorSubtitle);
     }
 
     // Draw instructions
@@ -847,7 +876,8 @@ void Game::updatePlaying (float dt)
         }
 
         bool directTurret = isHumanControlled && (aimMode == AimMode::Rotation);
-        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight, windDirection, directTurret);
+        float fireInterval = (aimMode == AimMode::Rotation) ? config.fireIntervalRotation : config.fireIntervalCrosshair;
+        tanks[tankIdx]->update (dt, moveInput, aimInput, fireInput, arenaWidth, arenaHeight, windDirection, directTurret, fireInterval);
 
         // Mouse aiming (only in crosshair mode)
         if (isHumanControlled && players[tankIdx]->isUsingMouse() && aimMode == AimMode::Crosshair)
@@ -1400,19 +1430,19 @@ void Game::renderTitle()
     float w, h;
     getWindowSize (w, h);
 
-    renderer->drawTextCentered ("CAMBRAI", { w / 2.0f, h * 0.20f }, 8.0f, config.colorTitle);
+    renderer->drawTextCentered ("CAMBRAI", { w / 2.0f, h * 0.12f }, 8.0f, config.colorTitle);
 
-    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 5", { w / 2.0f, h * 0.38f }, 2.5f, config.colorSubtitle);
+    renderer->drawTextCentered ("FREE FOR ALL - BEST OF 5", { w / 2.0f, h * 0.28f }, 2.5f, config.colorSubtitle);
 
     // Player count selector
     std::string playerCountText = std::to_string (numPlayers) + " PLAYERS";
-    renderer->drawTextCentered (playerCountText, { w / 2.0f, h * 0.46f }, 3.0f, config.colorSubtitle);
-    renderer->drawTextCentered ("UP/DOWN TO CHANGE", { w / 2.0f, h * 0.51f }, 1.5f, config.colorGreySubtle);
+    renderer->drawTextCentered (playerCountText, { w / 2.0f, h * 0.36f }, 3.0f, config.colorSubtitle);
+    renderer->drawTextCentered ("UP/DOWN TO CHANGE", { w / 2.0f, h * 0.41f }, 1.5f, config.colorSubtitle);
 
     // Player slots - only show numPlayers slots
     float slotSpacing = 80.0f;
     float startX = w / 2.0f - (numPlayers - 1) * 0.5f * slotSpacing;
-    float slotY = h * 0.62f;
+    float slotY = h * 0.52f;
 
     for (int i = 0; i < numPlayers; ++i)
     {
@@ -1446,11 +1476,15 @@ void Game::renderTitle()
         std::string volText = "VOLUME  ";
         for (int i = 0; i < 10; ++i)
             volText += (i < level) ? "O" : "-";
-        renderer->drawTextCentered (volText, { w / 2.0f, h * 0.76f }, 2.0f, config.colorSubtitle);
-        renderer->drawTextCentered ("LEFT/RIGHT TO ADJUST", { w / 2.0f, h * 0.80f }, 1.5f, config.colorGreySubtle);
+        renderer->drawTextCentered (volText, { w / 2.0f, h * 0.66f }, 2.0f, config.colorSubtitle);
+        renderer->drawTextCentered ("LEFT/RIGHT TO ADJUST", { w / 2.0f, h * 0.70f }, 1.5f, config.colorSubtitle);
     }
 
-    renderer->drawTextCentered ("PRESS ANY BUTTON TO START", { w / 2.0f, h * 0.90f }, 2.0f, config.colorInstruction);
+    std::string aimModeText = (aimMode == AimMode::Crosshair) ? "AIM MODE: CROSSHAIR" : "AIM MODE: ROTATION";
+    renderer->drawTextCentered (aimModeText, { w / 2.0f, h * 0.78f }, 2.0f, config.colorSubtitle);
+    renderer->drawTextCentered ("TAB OR R3 TO CHANGE", { w / 2.0f, h * 0.82f }, 1.5f, config.colorSubtitle);
+
+    renderer->drawTextCentered ("PRESS ANY BUTTON TO START", { w / 2.0f, h * 0.94f }, 2.0f, config.colorInstruction);
 }
 
 void Game::renderPlacement()
@@ -1519,7 +1553,7 @@ void Game::renderPlacement()
 
         std::string statusText = hasPlaced[i] ? "PLACED" : typeText;
         renderer->drawTextCentered ("P" + std::to_string (i + 1), { pos.x, pos.y - 15 }, 2.0f, color);
-        renderer->drawTextCentered (statusText, { pos.x, pos.y + 10 }, 1.5f, hasPlaced[i] ? config.colorGreySubtle : color);
+        renderer->drawTextCentered (statusText, { pos.x, pos.y + 10 }, 1.5f, hasPlaced[i] ? config.colorSubtitle : color);
     }
 }
 
@@ -1576,7 +1610,7 @@ void Game::renderPlaying()
 
     // Draw round counter
     std::string roundText = "ROUND " + std::to_string (currentRound) + " OF " + std::to_string (config.roundsToWin);
-    renderer->drawTextCentered (roundText, { w / 2.0f, h - 20.0f }, 1.5f, config.colorGreySubtle);
+    renderer->drawTextCentered (roundText, { w / 2.0f, h - 20.0f }, 1.5f, config.colorSubtitle);
 
     // Draw scores on bottom
     float scoreY = h - 50.0f;

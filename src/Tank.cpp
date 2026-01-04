@@ -9,10 +9,11 @@ Tank::Tank (int playerIndex_, Vec2 startPos, float startAngle, float tankSize)
       turretAngle (0.0f), size (tankSize)
 {
     crosshairOffset = Vec2::fromAngle (angle) * config.crosshairStartDistance;
-    reloadTimer = config.fireInterval; // Start loaded
+    currentFireInterval = config.fireIntervalCrosshair;
+    reloadTimer = currentFireInterval; // Start loaded
 }
 
-void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl)
+void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, float arenaWidth, float arenaHeight, Vec2 windDirection, bool directTurretControl, float fireInterval)
 {
     // Handle destruction animation
     if (destroying)
@@ -49,10 +50,11 @@ void Tank::update (float dt, Vec2 moveInput, Vec2 aimInput, bool fireInput, floa
     float damagePercent = getDamagePercent();
     float damagePenalty = 1.0f - (damagePercent * config.tankDamagePenaltyMax);
 
-    // Update reload timer
+    // Update fire interval and reload timer
+    currentFireInterval = fireInterval;
     reloadTimer += dt;
-    if (reloadTimer > config.fireInterval)
-        reloadTimer = config.fireInterval;
+    if (reloadTimer > currentFireInterval)
+        reloadTimer = currentFireInterval;
 
     // Fire if requested
     if (fireInput && isReadyToFire())
@@ -388,7 +390,7 @@ std::array<Vec2, 4> Tank::getCorners() const
 
 bool Tank::fireShell()
 {
-    if (reloadTimer < config.fireInterval || !isTurretOnTarget())
+    if (reloadTimer < currentFireInterval || !isTurretOnTarget())
         return false;
 
     // Shell fires from turret

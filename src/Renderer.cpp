@@ -136,6 +136,14 @@ void Renderer::drawTank (const Tank& tank)
     Color barrelColor = { config.colorBarrel.r, config.colorBarrel.g, config.colorBarrel.b, tankColor.a };
     drawFilledRotatedRect (barrelCenter, barrelLength, barrelWidth, worldTurretAngle, barrelColor);
 
+    // Reload indicator at barrel base
+    if (tank.isReloaded() && !tank.isDestroying())
+    {
+        Color readyColor = config.colorReloadReady;
+        readyColor.a = tankColor.a;
+        drawFilledCircle (pos, barrelWidth * 0.8f, readyColor);
+    }
+
     // Outline
     Color outlineColor = {
         (unsigned char) (tankColor.r * 0.4f),
