@@ -108,12 +108,16 @@ void Player::updateKeyboardMouse()
     else if (IsKeyDown (KEY_D) || IsKeyDown (KEY_RIGHT))
         moveInput.x = 1.0f;   // Rotate right
 
-    // Mouse position for aiming
+    // Mouse position for aiming (crosshair mode)
     Vector2 mouse = GetMousePosition();
     mousePosition = { mouse.x, mouse.y };
 
-    // aimInput not used for mouse aiming - Game will set crosshair directly
+    // Q/E for turret rotation (rotation aim mode)
     aimInput = { 0, 0 };
+    if (IsKeyDown (KEY_Q))
+        aimInput.x = -1.0f;
+    else if (IsKeyDown (KEY_E))
+        aimInput.x = 1.0f;
 
     // Left click to fire
     fireInput = IsMouseButtonDown (MOUSE_BUTTON_LEFT);

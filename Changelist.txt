@@ -1,3 +1,6 @@
+0.0.4
+- Add keyboard controls for turrent aiming
+
 0.0.3
 - Fixed config
 

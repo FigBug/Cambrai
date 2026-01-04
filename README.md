@@ -8,10 +8,11 @@ A multiplayer tank battle game for up to 4 players. Battle in an arena with dest
 
 ## Features
 
-- **Local Multiplayer**: Up to 4 players with gamepad or keyboard/mouse support
-- **10-Round Matches**: Players place obstacles, then battle through 10 rounds
-- **11 Obstacle Types**: Walls, mines, auto-turrets, portals, powerups, electromagnets, and more
+- **Local Multiplayer**: 2-4 players with gamepad or keyboard/mouse support
+- **5-Round Matches**: Players select and place obstacles, then battle through 5 rounds
+- **12 Obstacle Types**: Walls, mines, auto-turrets, portals, powerups, electromagnets, and more
 - **Tank Combat**: Health system, shell physics with splash damage, and destruction animations
+- **Two Aim Modes**: Crosshair mode or direct turret rotation
 
 ## Building
 
@@ -42,22 +43,51 @@ Run `cmake --build build`
 
 ## Controls
 
-### Gamepad
-- Left stick: Move/rotate tank
-- Right stick: Aim crosshair
-- Right trigger: Fire
+### Title Screen
+| Action | Keyboard | Gamepad |
+|--------|----------|---------|
+| Change player count | Up/Down | D-pad Up/Down |
+| Adjust volume | Left/Right | D-pad Left/Right |
+| Toggle aim mode | Tab | R3 (right stick click) |
+| Start game | Any key | A/B/X/Y |
 
-### Keyboard/Mouse
-- WASD: Move forward/back, rotate
-- Mouse: Aim crosshair
-- Left click: Fire
+### Selection Phase
+| Action | Keyboard | Gamepad |
+|--------|----------|---------|
+| Navigate grid | Arrow keys / WASD | D-pad / Left stick |
+| Select obstacle | Enter / Space | A |
+
+### Placement Phase
+| Action | Keyboard | Gamepad |
+|--------|----------|---------|
+| Move obstacle | Arrow keys / WASD | Left stick |
+| Rotate obstacle | Q / E | Bumpers |
+| Place obstacle | Enter / Left click | A |
+
+### Combat - Crosshair Mode (default)
+| Action | Keyboard/Mouse | Gamepad |
+|--------|----------------|---------|
+| Move forward/back | W/S | Left stick Y |
+| Rotate tank | A/D | Left stick X |
+| Aim crosshair | Mouse | Right stick |
+| Fire | Left click | Right trigger |
+
+### Combat - Rotation Mode
+| Action | Keyboard | Gamepad |
+|--------|----------|---------|
+| Move forward/back | W/S | Left stick Y |
+| Rotate tank | A/D | Left stick X |
+| Rotate turret | Q/E | Right stick X |
+| Fire | Left click | Right trigger |
+
+Rotation mode has faster reload (3s vs 7s) but requires manual turret aiming.
 
 ## Gameplay
 
-1. **Placement Phase**: Each player places one randomly-assigned obstacle
-2. **Combat**: Destroy enemy tanks to score points
-3. **Powerups**: Collect speed, damage, or armor boosts
-4. **Victory**: Highest score after 10 rounds wins
+1. **Selection Phase**: Each player selects an obstacle type from a grid
+2. **Placement Phase**: Each player places their selected obstacle on the battlefield
+3. **Combat**: Destroy enemy tanks to score points (1 point per kill, 1 point for surviving)
+4. **Victory**: Highest score after 5 rounds wins
 
 ## Obstacles
 
@@ -66,13 +96,14 @@ Run `cmake --build build`
 | Solid Wall | Indestructible barrier |
 | Breakable Wall | Can be destroyed by shells |
 | Reflective Wall | Bounces shells |
+| Ricochet Wall | Splits shells into 5 projectiles |
 | Mine | Instant kill after 2-second arm time |
 | Auto Turret | Autonomous defense turret |
 | Pit | Traps tanks for 15 seconds |
-| Portal | Teleports tanks |
-| Flag | Capture for 5 points |
-| Powerup | Speed, damage, or armor boost |
-| Electromagnet | Pulls tanks toward it |
+| Portal | Teleports tanks (maintains speed) |
+| Flag | Capture for 2 points |
+| Health Pack | Restores tank health |
+| Electromagnet | Pulls tanks and bends shell paths |
 | Fan | Pushes tanks with wind |
 
 ## Dependencies
