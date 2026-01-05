@@ -280,6 +280,109 @@ bool Config::load()
         loadValue (s, "aiSelectionMoveInterval", aiSelectionMoveInterval);
     }
 
+    // Shell Trail (in gameplay colors section of header but not colors)
+    {
+        const auto& s = getSection ("shellTrail");
+        loadValue (s, "length", shellTrailLength);
+        loadValue (s, "segments", shellTrailSegments);
+    }
+
+    // Colors - Environment
+    {
+        const auto& s = getSection ("colorsEnvironment");
+        loadColor (s, "dirt", colorDirt);
+        loadColor (s, "dirtDark", colorDirtDark);
+        loadColor (s, "dirtLight", colorDirtLight);
+    }
+
+    // Colors - Tanks
+    {
+        const auto& s = getSection ("colorsTanks");
+        loadColor (s, "red", colorTankRed);
+        loadColor (s, "blue", colorTankBlue);
+        loadColor (s, "green", colorTankGreen);
+        loadColor (s, "yellow", colorTankYellow);
+    }
+
+    // Colors - Obstacles
+    {
+        const auto& s = getSection ("colorsObstacles");
+        loadColor (s, "solidWall", colorSolidWall);
+        loadColor (s, "breakableWall", colorBreakableWall);
+        loadColor (s, "reflectiveWall", colorReflectiveWall);
+        loadColor (s, "ricochetWall", colorRicochetWall);
+        loadColor (s, "mine", colorMine);
+        loadColor (s, "mineArmed", colorMineArmed);
+        loadColor (s, "autoTurret", colorAutoTurret);
+        loadColor (s, "autoTurretBarrel", colorAutoTurretBarrel);
+        loadColor (s, "pit", colorPit);
+        loadColor (s, "portal", colorPortal);
+        loadColor (s, "flag", colorFlag);
+        loadColor (s, "flagPole", colorFlagPole);
+        loadColor (s, "electromagnetOn", colorElectromagnetOn);
+        loadColor (s, "electromagnetOff", colorElectromagnetOff);
+        loadColor (s, "fan", colorFan);
+        loadColor (s, "fanBlade", colorFanBlade);
+    }
+
+    // Colors - UI
+    {
+        const auto& s = getSection ("colorsUI");
+        loadColor (s, "white", colorWhite);
+        loadColor (s, "black", colorBlack);
+        loadColor (s, "grey", colorGrey);
+        loadColor (s, "greyDark", colorGreyDark);
+        loadColor (s, "greyMid", colorGreyMid);
+        loadColor (s, "greyLight", colorGreyLight);
+        loadColor (s, "greySubtle", colorGreySubtle);
+        loadColor (s, "barBackground", colorBarBackground);
+        loadColor (s, "hudBackground", colorHudBackground);
+    }
+
+    // Colors - Title Screen
+    {
+        const auto& s = getSection ("colorsTitleScreen");
+        loadColor (s, "title", colorTitle);
+        loadColor (s, "subtitle", colorSubtitle);
+        loadColor (s, "instruction", colorInstruction);
+    }
+
+    // Colors - Gameplay
+    {
+        const auto& s = getSection ("colorsGameplay");
+        loadColor (s, "shell", colorShell);
+        loadColor (s, "shellTracer", colorShellTracer);
+        loadColor (s, "barrel", colorBarrel);
+        loadColor (s, "reloadReady", colorReloadReady);
+        loadColor (s, "reloadNotReady", colorReloadNotReady);
+        loadColor (s, "trackMark", colorTrackMark);
+    }
+
+    // Colors - Explosions
+    {
+        const auto& s = getSection ("colorsExplosions");
+        loadColor (s, "outer", colorExplosionOuter);
+        loadColor (s, "mid", colorExplosionMid);
+        loadColor (s, "core", colorExplosionCore);
+    }
+
+    // Colors - Placement Phase
+    {
+        const auto& s = getSection ("colorsPlacement");
+        loadColor (s, "valid", colorPlacementValid);
+        loadColor (s, "invalid", colorPlacementInvalid);
+        loadColor (s, "timer", colorPlacementTimer);
+    }
+
+    // Colors - Selection Phase
+    {
+        const auto& s = getSection ("colorsSelection");
+        loadColor (s, "grid", colorSelectionGrid);
+        loadColor (s, "cell", colorSelectionCell);
+        loadColor (s, "taken", colorSelectionTaken);
+        loadColor (s, "text", colorSelectionText);
+    }
+
     return true;
 }
 
@@ -435,6 +538,99 @@ bool Config::save() const
         { "aiSelectionMinDelay", aiSelectionMinDelay },
         { "aiSelectionMaxDelay", aiSelectionMaxDelay },
         { "aiSelectionMoveInterval", aiSelectionMoveInterval }
+    };
+
+    // Shell Trail
+    j["shellTrail"] = {
+        { "length", shellTrailLength },
+        { "segments", shellTrailSegments }
+    };
+
+    // Colors - Environment
+    j["colorsEnvironment"] = {
+        { "dirt", colorToJson (colorDirt) },
+        { "dirtDark", colorToJson (colorDirtDark) },
+        { "dirtLight", colorToJson (colorDirtLight) }
+    };
+
+    // Colors - Tanks
+    j["colorsTanks"] = {
+        { "red", colorToJson (colorTankRed) },
+        { "blue", colorToJson (colorTankBlue) },
+        { "green", colorToJson (colorTankGreen) },
+        { "yellow", colorToJson (colorTankYellow) }
+    };
+
+    // Colors - Obstacles
+    j["colorsObstacles"] = {
+        { "solidWall", colorToJson (colorSolidWall) },
+        { "breakableWall", colorToJson (colorBreakableWall) },
+        { "reflectiveWall", colorToJson (colorReflectiveWall) },
+        { "ricochetWall", colorToJson (colorRicochetWall) },
+        { "mine", colorToJson (colorMine) },
+        { "mineArmed", colorToJson (colorMineArmed) },
+        { "autoTurret", colorToJson (colorAutoTurret) },
+        { "autoTurretBarrel", colorToJson (colorAutoTurretBarrel) },
+        { "pit", colorToJson (colorPit) },
+        { "portal", colorToJson (colorPortal) },
+        { "flag", colorToJson (colorFlag) },
+        { "flagPole", colorToJson (colorFlagPole) },
+        { "electromagnetOn", colorToJson (colorElectromagnetOn) },
+        { "electromagnetOff", colorToJson (colorElectromagnetOff) },
+        { "fan", colorToJson (colorFan) },
+        { "fanBlade", colorToJson (colorFanBlade) }
+    };
+
+    // Colors - UI
+    j["colorsUI"] = {
+        { "white", colorToJson (colorWhite) },
+        { "black", colorToJson (colorBlack) },
+        { "grey", colorToJson (colorGrey) },
+        { "greyDark", colorToJson (colorGreyDark) },
+        { "greyMid", colorToJson (colorGreyMid) },
+        { "greyLight", colorToJson (colorGreyLight) },
+        { "greySubtle", colorToJson (colorGreySubtle) },
+        { "barBackground", colorToJson (colorBarBackground) },
+        { "hudBackground", colorToJson (colorHudBackground) }
+    };
+
+    // Colors - Title Screen
+    j["colorsTitleScreen"] = {
+        { "title", colorToJson (colorTitle) },
+        { "subtitle", colorToJson (colorSubtitle) },
+        { "instruction", colorToJson (colorInstruction) }
+    };
+
+    // Colors - Gameplay
+    j["colorsGameplay"] = {
+        { "shell", colorToJson (colorShell) },
+        { "shellTracer", colorToJson (colorShellTracer) },
+        { "barrel", colorToJson (colorBarrel) },
+        { "reloadReady", colorToJson (colorReloadReady) },
+        { "reloadNotReady", colorToJson (colorReloadNotReady) },
+        { "trackMark", colorToJson (colorTrackMark) }
+    };
+
+    // Colors - Explosions
+    j["colorsExplosions"] = {
+        { "outer", colorToJson (colorExplosionOuter) },
+        { "mid", colorToJson (colorExplosionMid) },
+        { "core", colorToJson (colorExplosionCore) }
+    };
+
+    // Colors - Placement Phase
+    j["colorsPlacement"] = {
+        { "valid", colorToJson (colorPlacementValid) },
+        { "invalid", colorToJson (colorPlacementInvalid) },
+        { "timer", colorToJson (colorPlacementTimer) }
+    };
+
+    // Colors - Selection Phase
+    j["colorsSelection"] = {
+        { "grid", colorToJson (colorSelectionGrid) },
+        { "cell", colorToJson (colorSelectionCell) },
+        { "taken", colorToJson (colorSelectionTaken) },
+        { "text", colorToJson (colorSelectionText) }
     };
 
     std::ofstream file (path);
